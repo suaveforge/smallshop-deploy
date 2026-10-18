@@ -18,4 +18,4 @@ jobs:
       - name: Validate Docker Compose
         run: docker compose -f compose.yaml config --quiet
       - name: Validate shell scripts
-        run: bash -n scripts/check-health.sh
+        run: bash -n scripts/check-health.sh scripts/deploy-docker.sh
