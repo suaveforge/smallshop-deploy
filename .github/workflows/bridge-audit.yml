@@ -1,0 +1,77 @@
+name: Audit Spaceship and server123 HTTPS bridge (read-only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/bridge-audit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: [self-hosted, linux, x64, server123, suaveforge-org]
+    timeout-minutes: 6
+    steps:
+      - name: Inspect existing 80 443 and Caddy configuration
+        shell: bash
+        run: |
+          set -eu
+          echo "BRIDGE_AUDIT=begin"
+          for path in /home/gyeol/Caddyfile /home/gyeol/runtime/caddy/caddy /home/suaveforge/secrets/spaceship.env; do
+            if test -e "$path"; then
+              if test -r "$path"; then readable=yes; else readable=no; fi
+              if test -w "$path"; then writable=yes; else writable=no; fi
+              echo "PATH_CHECK $path exists=yes readable=$readable writable=$writable"
+            else
+              echo "PATH_CHECK $path exists=no"
+            fi
+          done
+          echo "LISTENERS_BEGIN"
+          ss -lntp 2>/dev/null | grep -E ':80[[:space:]]|:443[[:space:]]|:18195[[:space:]]' | head -n 15 || true
+          echo "LISTENERS_END"
+          if test -r /home/gyeol/Caddyfile; then
+            echo "EXISTING_CADDY_HOST_LABELS"
+            grep -E '^[[:space:]]*[a-zA-Z0-9_.-]+\.suaveforge\.com[[:space:]]*\{' /home/gyeol/Caddyfile | head -n 30 || true
+            grep -q '^smallshop\.suaveforge\.com[[:space:]]*{' /home/gyeol/Caddyfile && echo "SMALLSHOP_CADDY_PRESENT=yes" || echo "SMALLSHOP_CADDY_PRESENT=no"
+          fi
+          if command -v curl >/dev/null 2>&1; then
+            echo "SMALLSHOP_LOCAL:"
+            curl -fsS --max-time 6 http://127.0.0.1:18195/api/health || true
+            echo ""
+          fi
+      - name: Read Spaceship DNS status without exposing keys
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error
+          from pathlib import Path
+          p=Path('/home/suaveforge/secrets/spaceship.env')
+          if not p.is_file() or not p.stat().st_size: 
+              print('SPACESHIP_FILE=missing'); raise SystemExit(0)
+          try:
+              raw=p.read_text()
+          except Exception as ex:
+              print('SPACESHIP_READ=failed',type(ex).__name__);raise SystemExit(0)
+          conf={}
+          for ln in raw.splitlines():
+              ln=ln.strip()
+              if not ln or ln[0] in ('#',';') or '=' not in ln: continue
+              k,v=ln.split('=',1)
+              conf[k.strip()]=v.strip().strip('"').strip("'")
+          keys=['SPACESHIP_API_KEY','SPACESHIP_API_SECRET','SPACESHIP_ZONE']
+          if any(not conf.get(k) for k in keys):
+              print('SPACESHIP_KEYS=incomplete',','.join(k for k in keys if not conf.get(k)));raise SystemExit(0)
+          print('SPACESHIP_KEYS=present','zone='+conf['SPACESHIP_ZONE'])
+          if conf['SPACESHIP_ZONE']!='suaveforge.com':raise SystemExit(0)
+          headers={'X-API-Key':conf['SPACESHIP_API_KEY'],'X-API-Secret':conf['SPACESHIP_API_SECRET']}
+          url='https://spaceship.dev/api/v1/dns/records/suaveforge.com?take=500&skip=0'
+          try:
+              with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=22) as r:
+                  data=json.load(r)
+              items=data.get('items',[]) if isinstance(data,dict) else []
+              sel=[{k:rec.get(k) for k in ('type','name','address','value','ttl')} for rec in items if str(rec.get('name','')).lower() in ('smallshop','smallshop.suaveforge.com')]
+              print('SPACESHIP_DNS_READ=ok total='+str(data.get('total',len(items))))
+              print('SMALLSHOP_RECORDS='+json.dumps(sel,ensure_ascii=False))
+          except urllib.error.HTTPError as e:print('SPACESHIP_DNS_READ=http_'+str(e.code))
+          except Exception as e:print('SPACESHIP_DNS_READ=error_'+type(e).__name__)
+          PY
