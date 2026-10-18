@@ -1,31 +1,35 @@
-# smallshop server123 운영 문서
+# 작은가게 server123 운영 가이드
 
-## 1. 서비스 격리
-- 기존 WorkLinks, Kimse, WattGuard 등의 Docker 서비스는 수정하거나 내리지 않음.
-- 프로젝트 이름 `smallshop`, 컨테이너명 `smallshop-web`만 사용.
-- 서버 내부 127.0.0.1:18195 포트만 기본 바인딩. 공용 포트·프록시 설정은 별도 승인 후.
+## 현재 서비스
 
-## 2. 선행 검증
-1. 정확한 self-hosted runner 라벨이 `self-hosted, linux, x64, server123`인지 GitHub 설정에서 확인. 일치하지 않으면 deploy workflow의 runs-on을 **해당 서버에만 매칭되도록** 교정.
-2. 해당 runner에 Docker + Docker Compose plugin + curl 설치/접근 권한이 있는지 확인.
-3. `SMALLSHOP_SOURCE_READ_TOKEN`을 배포 저장소 Secret으로 등록. private `suaveforge/smallshop` Contents 읽기만 허용.
-4. `SMALLSHOP_PORT` repository variable을 지정할 수 있음. 기본값 18195. 이미 쓰는 포트인지 확인.
-5. 별도 reverse-proxy/도메인, TLS 설정 확인 후 공개. 샘플 Nginx 설정은 그대로 적용 금지.
+| 구성 | 주소 / 컨테이너 |
+|---|---|
+| 소비자·점주·관리자 데모 | `https://smallshop.suaveforge.com:18459/` |
+| API 상태 | `https://smallshop.suaveforge.com:18459/api/health` |
+| 독립 Nginx HTTPS | `smallshop-highport-nginx`, `0.0.0.0:18459` |
+| 내부 Next.js | `smallshop-web`, `127.0.0.1:18195` |
+| 전용 Certbot 갱신 | `smallshop-highport-cert-renewer` |
+| Spaceship DNS | `smallshop.suaveforge.com` → `211.255.25.123` |
 
-## 3. 배포
-- GitHub Actions > Deploy smallshop (manual, server123) > Run workflow
-- source_ref로 main 또는 검증된 커밋 SHA 입력.
-- 워크플로는 source repo를 읽기 전용 checkout, Docker 이미지 빌드, `smallshop-web`만 Compose up.
-- 출처 불명의 파이프라인에서 자동 재배포하지 않음.
+### 검증
 
-## 4. 검증
-```sh
-docker compose -p smallshop -f compose.yaml ps
-SMALLSHOP_PORT=18195 bash scripts/check-health.sh
-curl -I http://127.0.0.1:18195/
+```bash
+curl -fsS https://smallshop.suaveforge.com:18459/api/health
+curl -I https://smallshop.suaveforge.com:18459/
+docker ps --filter name=smallshop
 ```
-- `/api/health`가 HTTP 200 + `mode:demo`, `payments:disabled`인지 확인.
-- 공개 사이트는 실제 데이터 도입 전 noindex 유지.
 
-## 5. 주의
-이 문서와 Actions 설정만으로 실 서버 배포가 완료되는 것은 아닙니다. 러너/시크릿/포트/도메인과 소스 빌드 검증 후 수동 워크플로를 실행해야 합니다.
+기대 건강상태: `{"service":"smallshop","status":"ok","mode":"demo","payments":"disabled"}`.
+
+## 변경·배포 정책
+
+1. `suaveforge/smallshop` 메인 브랜치에서 기존 server123 셀프호스트 러너로 CI 테스트와 Next.js 빌드.
+2. CI 성공 후 독립 `smallshop-web` 컨테이너만 Docker CLI로 배포.
+3. 기존 배포 스크립트 `scripts/deploy-docker.sh`는 앱 18195용. 고포트 Nginx 및 TLS 관리 스크립트는 소스 저장소 `scripts/highport-smallshop.sh`.
+4. Nginx 설정은 `/home/suaveforge/runtime/smallshop-highport/nginx.conf`. TLS는 동일 경로의 `letsencrypt` 하위에 보관.
+5. 다른 컨테이너를 내리거나 80/443, Caddy를 변경하지 않음. 작은가게는 443을 사용하지 않음.
+6. `compose.yaml`은 서버에 Docker Compose가 없으므로 사용하지 않음.
+
+## 앱 미구현 사항
+
+실제 판매자·결제·정산·재고 DB, 회원 인증, 개인정보 처리는 아직 연결되지 않았습니다. 관리 페이지는 데모이므로 실거래 데이터를 넣지 마세요.
