@@ -1,0 +1,101 @@
+name: Deploy smallshop (manual, server123)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Source branch/tag/SHA in suaveforge/smallshop"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smallshop-server123
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Exact runner label MUST be verified before running on an existing server123 runner.
+    runs-on: [self-hosted, linux, x64, server123]
+    timeout-minutes: 30
+    steps:
+      - name: Checkout deployment configuration
+        uses: actions/checkout@v4
+        with:
+          path: deploy
+          persist-credentials: false
+      - name: Preflight prerequisites
+        env:
+          SOURCE_TOKEN: ${{ secrets.SMALLSHOP_SOURCE_READ_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SOURCE_TOKEN" || { echo 'Missing SMALLSHOP_SOURCE_READ_TOKEN'; exit 1; }
+          command -v docker
+          docker info >/dev/null
+          docker compose version
+      - name: Checkout source repository (read only)
+        uses: actions/checkout@v4
+        with:
+          repository: suaveforge/smallshop
+          ref: ${{ inputs.source_ref }}
+          token: ${{ secrets.SMALLSHOP_SOURCE_READ_TOKEN }}
+          path: source
+          persist-credentials: false
+      - name: Validate selected source version
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f source/Dockerfile
+          test -f source/package.json
+          echo "Source commit: $(git -C source rev-parse HEAD)"
+      - name: Check isolated host port
+        shell: bash
+        env:
+          SMALLSHOP_PORT: ${{ vars.SMALLSHOP_PORT || '18195' }}
+        run: |
+          set -euo pipefail
+          case "$SMALLSHOP_PORT" in
+            ''|*[!0-9]*) echo 'Invalid SMALLSHOP_PORT'; exit 1 ;;
+          esac
+          if command -v ss >/dev/null 2>&1; then
+            if ss -lnt | grep -E "[:.]$SMALLSHOP_PORT[[:space:]]" >/dev/null; then
+              if ! docker ps --format '{{.Names}}' | grep -Fxq smallshop-web; then
+                echo "Host port $SMALLSHOP_PORT is occupied. Refusing to touch another service."
+                exit 1
+              fi
+            fi
+          fi
+      - name: Build application image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --tag "smallshop:build-$GITHUB_RUN_ID" source
+      - name: Deploy only smallshop service
+        shell: bash
+        env:
+          SMALLSHOP_PORT: ${{ vars.SMALLSHOP_PORT || '18195' }}
+        run: |
+          set -euo pipefail
+          docker tag "smallshop:build-$GITHUB_RUN_ID" smallshop:web
+          docker compose -p smallshop -f deploy/compose.yaml config --quiet
+          docker compose -p smallshop -f deploy/compose.yaml up -d --no-deps web
+      - name: Verify health endpoint
+        shell: bash
+        env:
+          SMALLSHOP_PORT: ${{ vars.SMALLSHOP_PORT || '18195' }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 20); do
+            if curl -fsS "http://127.0.0.1:$SMALLSHOP_PORT/api/health"; then
+              echo ""
+              exit 0
+            fi
+            sleep 3
+          done
+          echo 'Health verification failed'
+          docker compose -p smallshop -f deploy/compose.yaml ps
+          exit 1
