@@ -86,11 +86,32 @@ function icon(name, cls='') {
   return '<svg class="ui-icon ui-icon-'+name+(cls?' '+cls:'')+'" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" role="presentation" aria-hidden="true" focusable="false">'+shape+'</svg>';
 }
 
-const note='<div class="notice">'+icon('info')+' 가게·상품·주문·매출 정보는 시연용입니다. 실제 판매 및 결제는 아직 제공하지 않습니다.</div>';
+const note='<div class="notice" role="note">'+icon('info')+' 가게·상품·주문·매출 정보는 시연용입니다. 실제 판매 및 결제는 아직 제공하지 않습니다.</div>';
 let selectedQty=1;
-function readCart(){try{const x=JSON.parse(localStorage.getItem('smallshop-demo-cart')||'[]');return Array.isArray(x)?x.filter(z=>goods.some(p=>p[0]===z.id)&&z.qty>0):[]}catch{return []}}
-function writeCart(x){localStorage.setItem('smallshop-demo-cart',JSON.stringify(x))}
-function addCart(id,q){let cart=readCart();const existing=cart.find(x=>x.id===id);if(existing)existing.qty=Math.min(99,existing.qty+q);else cart.push({id:id,qty:q});writeCart(cart)}
+let fallbackCart=[];
+function readCart(){
+ let rows=fallbackCart;
+ try{const parsed=JSON.parse(localStorage.getItem('smallshop-demo-cart')||'[]');if(Array.isArray(parsed))rows=parsed;}catch{}
+ return (Array.isArray(rows)?rows:[]).filter(item=>
+  item&&goods.some(g=>g[0]===item.id)&&Number.isInteger(item.qty)&&item.qty>=1
+ ).map(item=>({id:item.id,qty:Math.min(99,item.qty)}));
+}
+function writeCart(items){fallbackCart=items;try{localStorage.setItem('smallshop-demo-cart',JSON.stringify(items));}catch{}}
+function addCart(id,q){
+ const cart=readCart(),found=cart.find(x=>x.id===id);
+ if(found)found.qty=Math.min(99,found.qty+q);
+ else if(goods.some(g=>g[0]===id))cart.push({id,qty:Math.min(99,q)});
+ writeCart(cart);
+}
+function refreshCartCount(){
+ const node=document.querySelector('.header-account .cart');if(!node)return;
+ const n=readCart().reduce((total,item)=>total+item.qty,0);
+ let badge=node.querySelector('.count');
+ if(!badge&&n){badge=document.createElement('b');badge.className='count';node.appendChild(badge);}
+ if(badge){badge.textContent=String(n);badge.hidden=n===0;}
+ node.setAttribute('aria-label','장바구니 '+n+'개');
+}
+
 const hanokLogo='<svg viewBox="0 0 48 48" fill="none" aria-hidden="true" width="40" height="40"><path d="M3 23 24 6l21 17-5 2-16-12L8 25z" fill="#b33e35"/><path d="M12 23h25v21H12z" fill="#b33e35"/><path d="M18 28h13v16H18z" fill="#fff7f0"/><path d="M23 28v16" stroke="#b33e35" stroke-width="2"/><path d="M9 22h30v5H9zM23 6l2-5 2 5z" fill="#9e302e"/><path d="M5 44h38" stroke="#b33e35" stroke-width="3"/></svg>';
 function header(){
  const count=readCart().reduce((n,x)=>n+x.qty,0);
@@ -245,8 +266,8 @@ function storesPage(){
  nav('/regions','전국지도 열기 →')+'</div>';
 }
 function oneStore(id){const st=stores.find(s=>s[0]===id);if(!st)return notfound();return note+'<div class="crumb">'+nav('/stores','작은가게')+' / '+st[2]+' / '+st[1]+'</div><div class="storehero"><div class="storephoto">'+img(photo[st[5]],st[1])+'<div>'+st[2]+' · '+st[4]+'<h1>'+st[1]+'</h1></div></div><div class="story"><small>작은가게 인터뷰</small><h1>가게 이야기를<br>만나보세요</h1><p>실제 점주 인터뷰 및 유튜브 영상은 추후 공개됩니다.</p>'+status(icon('play')+' 인터뷰 준비 중')+'</div></div><section class="section">'+heading('가게 소개')+'<div class="panel"><p>'+st[1]+' · '+st[2]+' · '+st[4]+'</p><p>배송·매장 정보는 실제 입점 검증 후 안내합니다.</p></div></section><section class="section">'+heading('이 가게의 대표 상품')+'<div class="products">'+goods.filter(g=>stores[g[1]][0]===id).map(productTile).join('')+'</div></section><section class="section">'+heading('사장님 이야기')+'<div class="quiet">'+icon('video')+' 현장 인터뷰 영상 준비 중</div></section>'}
-function oneProduct(id){const g=goods.find(x=>x[0]===id);if(!g)return notfound();const st=stores[g[1]];return note+'<div class="crumb">'+nav('/','홈')+' / '+nav('/store/'+st[0],st[1])+' / '+g[2]+'</div><div class="detail"><div><div class="detailimg">'+img(photo[st[5]],g[2])+'</div><small>상품 사진은 시연용 이미지입니다.</small></div><div class="buy"><small>'+st[2]+' · 데모 상품</small><h1>'+g[2]+'</h1><p>'+nav('/store/'+st[0],icon('store')+' '+st[1]+' →','green')+'</p><p>가격과 배송 정보는 실제 입점 후 확정됩니다.</p><b class="price">'+won(g[3])+'</b><div class="delivery"><span>'+icon('truck')+' 배송비 · 확인 전</span><span>'+icon('package')+' 원재료·보관법 · 확인 전</span><span>'+icon('info')+' 실제 결제 · 미연결</span></div><div class="qrow"><b>수량</b><div class="quantity"><button data-qty="-1">−</button><span id="qty">'+selectedQty+'</span><button data-qty="1">+</button></div><b id="amount">'+won(g[3]*selectedQty)+'</b></div><button class="primary" data-add="'+id+'">'+icon('shoppingBag')+' 장바구니 담기</button><div id="addnotice"></div><p><small>실제 결제·주문은 제공하지 않습니다.</small></p></div></div><div class="tabs"><a href="#detail">상품 소개</a><a href="#seller">가게 이야기</a><a href="#delivery">배송 안내</a></div><section class="section" id="detail">'+heading('상품 소개')+'<div class="article"><div><h3>'+g[2]+'</h3><p>시연용 예시 상품입니다. 판매자 확인을 거친 원재료·알레르기·유통기한·보관방법 등을 등록할 예정입니다.</p></div>'+img(photo[st[5]],g[2])+'</div></section><section class="section" id="seller">'+heading('점주 인터뷰')+'<div class="quiet">'+icon('video')+' 촬영 동의 후 공개됩니다.</div></section><section class="section" id="delivery">'+heading('배송·교환·환불')+'<p class="muted">실제 판매자별 상세 기준은 입점 후 등록합니다.</p></section>'}
-function cartPage(){const cart=readCart();const total=cart.reduce((n,c)=>{const g=goods.find(x=>x[0]===c.id);return n+(g?g[3]*c.qty:0)},0);return note+intro('','장바구니','체험은 가능하지만 실제 주문·결제는 진행되지 않습니다.')+(cart.length?'<div class="cartlayout"><div class="panel">'+cart.map(c=>{const g=goods.find(g=>g[0]===c.id),s=stores[g[1]];return '<div class="cartrow">'+img(photo[s[5]],g[2])+'<div>'+nav('/product/'+g[0],'<b>'+g[2]+'</b>')+'<small>'+s[2]+'</small><strong>'+won(g[3])+'</strong></div><div class="quantity"><button data-cid="'+g[0]+'" data-delta="-1">−</button>'+c.qty+'<button data-cid="'+g[0]+'" data-delta="1">+</button></div><button class="remove" data-remove="'+g[0]+'">삭제</button></div>'}).join('')+'</div><aside class="panel summary"><h2>주문 요약</h2><p>상품 합계 <b>'+won(total)+'</b></p><p>배송비 <b>미정</b></p><p>상품 금액 <b>'+won(total)+'</b></p><button class="primary" disabled>결제 준비 중</button><small>PG 및 실제 입점 계약 이후 제공됩니다.</small></aside></div>':'<div class="panel empty">장바구니에 담긴 상품이 없습니다. '+nav('/','상품 둘러보기 →','red')+'</div>')}
+function oneProduct(id){const g=goods.find(x=>x[0]===id);if(!g)return notfound();const st=stores[g[1]];return note+'<div class="crumb">'+nav('/','홈')+' / '+nav('/store/'+st[0],st[1])+' / '+g[2]+'</div><div class="detail"><div><div class="detailimg">'+img(photo[st[5]],g[2])+'</div><small>상품 사진은 시연용 이미지입니다.</small></div><div class="buy"><small>'+st[2]+' · 데모 상품</small><h1>'+g[2]+'</h1><p>'+nav('/store/'+st[0],icon('store')+' '+st[1]+' →','green')+'</p><p>가격과 배송 정보는 실제 입점 후 확정됩니다.</p><b class="price">'+won(g[3])+'</b><div class="delivery"><span>'+icon('truck')+' 배송비 · 확인 전</span><span>'+icon('package')+' 원재료·보관법 · 확인 전</span><span>'+icon('info')+' 실제 결제 · 미연결</span></div><div class="qrow"><b>수량</b><div class="quantity"><button type="button" aria-label="수량 감소" data-qty="-1">−</button><span id="qty" aria-live="polite">'+selectedQty+'</span><button type="button" aria-label="수량 증가" data-qty="1">+</button></div><b id="amount">'+won(g[3]*selectedQty)+'</b></div><button class="primary" type="button" data-add="'+id+'">'+icon('shoppingBag')+' 장바구니 담기</button><div id="addnotice" role="status" aria-live="polite"></div><p><small>실제 결제·주문은 제공하지 않습니다.</small></p></div></div><div class="tabs"><a href="#detail">상품 소개</a><a href="#seller">가게 이야기</a><a href="#delivery">배송 안내</a></div><section class="section" id="detail">'+heading('상품 소개')+'<div class="article"><div><h3>'+g[2]+'</h3><p>시연용 예시 상품입니다. 판매자 확인을 거친 원재료·알레르기·유통기한·보관방법 등을 등록할 예정입니다.</p></div>'+img(photo[st[5]],g[2])+'</div></section><section class="section" id="seller">'+heading('점주 인터뷰')+'<div class="quiet">'+icon('video')+' 촬영 동의 후 공개됩니다.</div></section><section class="section" id="delivery">'+heading('배송·교환·환불')+'<p class="muted">실제 판매자별 상세 기준은 입점 후 등록합니다.</p></section>'}
+function cartPage(){const cart=readCart();const total=cart.reduce((n,c)=>{const g=goods.find(x=>x[0]===c.id);return n+(g?g[3]*c.qty:0)},0);return note+intro('','장바구니','체험은 가능하지만 실제 주문·결제는 진행되지 않습니다.')+(cart.length?'<div class="cartlayout"><div class="panel">'+cart.map(c=>{const g=goods.find(g=>g[0]===c.id),s=stores[g[1]];return '<div class="cartrow">'+img(photo[s[5]],g[2])+'<div>'+nav('/product/'+g[0],'<b>'+g[2]+'</b>')+'<small>'+s[2]+'</small><strong>'+won(g[3])+'</strong></div><div class="quantity"><button type="button" aria-label="'+esc(g[2])+' 수량 감소" data-cid="'+g[0]+'" data-delta="-1">−</button>'+c.qty+'<button type="button" aria-label="'+esc(g[2])+' 수량 증가" data-cid="'+g[0]+'" data-delta="1">+</button></div><button class="remove" data-remove="'+g[0]+'">삭제</button></div>'}).join('')+'</div><aside class="panel summary"><h2>주문 요약</h2><p>상품 합계 <b>'+won(total)+'</b></p><p>배송비 <b>미정</b></p><p>상품 금액 <b>'+won(total)+'</b></p><button class="primary" disabled>결제 준비 중</button><small>PG 및 실제 입점 계약 이후 제공됩니다.</small></aside></div>':'<div class="panel empty">장바구니에 담긴 상품이 없습니다. '+nav('/','상품 둘러보기 →','red')+'</div>')}
 function recordsPage(){return note+intro('현장 탐방 · 맛집기록','그 동네에서 먹고 왔어요','입점 여부와 무관하게 지역 먹거리를 기록합니다. 현재 예시 자료입니다.')+'<div class="records recordswide">'+records.map(recordTile).join('')+'</div>'}
 const orders=[['DEMO-001','꿀빵 10개입','13,000원','결제완료'],['DEMO-002','장아찌 500g','16,000원','상품준비'],['DEMO-003','한과 세트','18,000원','배송중']];
 function table(){return '<div class="scroller"><table><thead><tr><th>주문번호</th><th>상품</th><th>금액</th><th>상태</th></tr></thead><tbody>'+orders.map(r=>'<tr>'+r.map((cell,i)=>'<td>'+(i===3?status(cell):cell)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
@@ -425,11 +446,20 @@ function goto(url){history.pushState(null,'',link(url));selectedQty=1;render(tru
 document.addEventListener('click',e=>{
  const l=e.target.closest('a[data-route]');if(l&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey){e.preventDefault();const u=new URL(l.href);let pathname=u.pathname;if(BASE&&pathname.startsWith(BASE))pathname=pathname.slice(BASE.length);goto(pathname+u.search);return}
  const q=e.target.closest('button[data-qty]');if(q){selectedQty=Math.max(1,Math.min(99,selectedQty+Number(q.dataset.qty)));const g=goods.find(x=>location.pathname.includes(x[0]));if(g){document.getElementById('qty').textContent=selectedQty;document.getElementById('amount').textContent=won(g[3]*selectedQty)}return}
- const add=e.target.closest('button[data-add]');if(add){addCart(add.dataset.add,selectedQty);document.getElementById('addnotice').innerHTML='장바구니에 담겼습니다. '+nav('/cart','장바구니 보기 →','red');return}
+ const add=e.target.closest('button[data-add]');if(add){addCart(add.dataset.add,selectedQty);refreshCartCount();document.getElementById('addnotice').innerHTML='장바구니에 담겼습니다. '+nav('/cart','장바구니 보기 →','red');return}
  const ch=e.target.closest('button[data-cid]');if(ch){const a=readCart(),r=a.find(x=>x.id===ch.dataset.cid);if(r)r.qty=Math.min(99,Math.max(1,r.qty+Number(ch.dataset.delta)));writeCart(a);render(false);return}
  const rem=e.target.closest('button[data-remove]');if(rem){writeCart(readCart().filter(x=>x.id!==rem.dataset.remove));render(false)}
 });
 document.addEventListener('submit',e=>{if(e.target.id==='search'){e.preventDefault();const v=e.target.querySelector('input').value.trim().slice(0,60);history.pushState(null,'',link('/stores'+(v?'?q='+encodeURIComponent(v):'')));render(true)}});
+
+document.addEventListener('error',event=>{
+ const el=event.target;
+ if(!(el instanceof HTMLImageElement)||el.dataset.fallback==='true')return;
+ el.dataset.fallback='true';
+ el.src=link('/assets/food-placeholder.svg');
+ el.alt=(el.alt?el.alt+' · ':'')+'이미지 준비 중';
+},true);
+
 window.addEventListener('popstate',()=>render(false));
 render(false);
 const mapModule=document.createElement('script');
