@@ -24,6 +24,8 @@ jobs:
           grep -q 'OpenStreetMap' assets/map.js
           test -s index.html
           test -s 404.html
+          test -s join/index.html
+          grep -q "case 'join'" assets/site.js
           test -s assets/site.css
           test "$(cat CNAME)" = smallshop.suaveforge.com
           for route in regions stores records cart admin partner; do test -s "$route/index.html"; done

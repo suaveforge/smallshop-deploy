@@ -29,3 +29,10 @@
 ## 운영
 
 서버 배포는 기존 Docker CLI로 `smallshop-web`만 변경하며 기존 컨테이너·Caddy·방화벽을 변경하지 않습니다. [운영 안내](docs/OPERATIONS.md)를 참조하세요.
+
+## 가게 방문 상담용 안내
+
+- 공개 입점 안내: https://smallshop.suaveforge.com/join/
+- 업종 필터가 있는 전국지도: https://smallshop.suaveforge.com/regions/
+- 예시 가게는 **가상 자료**이며 지도 핀은 도시 중심입니다. 실제 방문 가능한 매장 목록이 아닙니다.
+- 가게 소개 영상·게시 비용은 초기 무료, 판매 시 중개수수료 1%, PG·택배·포장 실비 별도라는 **준비 단계 정책**을 안내합니다. 실제 계약·동의·판매 시스템은 아직 없습니다.
