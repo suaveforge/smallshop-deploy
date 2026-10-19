@@ -390,3 +390,5 @@ linear-gradient(0deg,#cee9ef 0%,#e7f3f1 29%,#fdfaf4 65%);border-radius:0 0 12px 
  .interview-box{grid-template-columns:1fr}
  .interview-box>img{height:155px}
 }
+
+.quick-products{border-top:1px solid #efeae4;margin-top:10px;padding-top:9px}.quick-products>b{display:block;font-size:11px;color:#625850;margin-bottom:4px}.quick-products>div{display:flex;justify-content:space-between;padding:5px 2px;font-size:11px;color:#4e4e45}.quick-products>div span{color:var(--red);font-weight:700}
