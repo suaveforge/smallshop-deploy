@@ -148,8 +148,8 @@ try{
  console.log('PASS mobile list mode',JSON.stringify(mobileList));
  
  await navigate('/join/');
- const join=await evalJS('(()=>({title:document.title,fee:document.body.innerText.includes("중개수수료 1%"),free:document.body.innerText.includes("입점비 무료"),interview:document.body.innerText.includes("인터뷰"),mailto:[...document.querySelectorAll("a[href^=mailto]")].some(x=>x.href.includes("contact@suaveforge.com")),form:document.querySelectorAll("form").length}))()');
- if(!join.fee||!join.free||!join.interview||!join.mailto||join.form!==0)throw Error('Merchant outreach page content incorrect '+JSON.stringify(join));
+ const join=await evalJS('(()=>({title:document.title,fee:document.body.innerText.includes("중개수수료 1%"),free:document.body.innerText.includes("입점비 무료"),interview:document.body.innerText.includes("인터뷰"),mailto:[...document.querySelectorAll("a[href^=mailto]")].some(x=>x.href.includes("contact@suaveforge.com")),signupForm:document.querySelectorAll("form:not(#search)").length}))()');
+ if(!join.fee||!join.free||!join.interview||!join.mailto||join.signupForm!==0)throw Error('Merchant outreach page content incorrect '+JSON.stringify(join));
  console.log('PASS on-site outreach page',JSON.stringify(join));
  await screen('06-join-page-mobile.png');
  await cdp('Emulation.clearDeviceMetricsOverride');
