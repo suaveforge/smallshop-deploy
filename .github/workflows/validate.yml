@@ -27,6 +27,9 @@ jobs:
           test -s join/index.html
           grep -q "case 'join'" assets/site.js
           test -s assets/site.css
+          test -s assets/food-placeholder.svg
+          node --check tests/geo-smoke.mjs
+          grep -q 'directory-filters' assets/site.js
           test "$(cat CNAME)" = smallshop.suaveforge.com
           for route in regions stores records cart admin partner; do test -s "$route/index.html"; done
       - name: Validate Docker Compose

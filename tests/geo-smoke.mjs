@@ -158,6 +158,50 @@ try{
  console.log('HOME_IMAGES',JSON.stringify(imagery));
 
 
+
+ // End-to-end storefront interactions, using actual served Pages JS and DOM.
+ await navigate('/stores/?category='+encodeURIComponent('반찬'));
+ const savoryStore=await evalJS('(()=>({url:location.pathname+location.search,stores:document.querySelectorAll(".storetile").length,goods:document.querySelectorAll(".directory-products .tile").length,active:[...document.querySelectorAll(".facet-chip.active")].map(x=>x.textContent.trim()),notice:document.querySelector(".directory-results")?.textContent.trim()}))()');
+ if(savoryStore.stores!==2||savoryStore.goods!==2||!savoryStore.active.includes('반찬'))throw Error('Store category filtering regression '+JSON.stringify(savoryStore));
+ console.log('PASS storefront category filter',JSON.stringify(savoryStore));
+ await screen('07-stores-category.png');
+ await navigate('/stores/?region='+encodeURIComponent('통영시'));
+ const regionalStores=await evalJS('(()=>({shops:document.querySelectorAll(".storetile").length,products:document.querySelectorAll(".directory-products .tile").length,active:[...document.querySelectorAll(".facet-chip.active")].map(x=>x.textContent.trim())}))()');
+ if(regionalStores.shops!==1||regionalStores.products!==1||!regionalStores.active.includes('통영시'))throw Error('Store region filter regression '+JSON.stringify(regionalStores));
+ console.log('PASS storefront regional facet',JSON.stringify(regionalStores));
+ await navigate('/');
+ const searched=await evalJS('(()=>{const input=document.querySelector("#search input");input.value="한과";document.querySelector("#search").requestSubmit();return {url:location.pathname+location.search,title:document.title,shops:document.querySelectorAll(".storetile").length,products:document.querySelectorAll(".directory-products .tile").length,input:document.querySelector("#search input").value}})()');
+ if(!searched.url.startsWith('/stores?q=')||searched.shops!==1||searched.products!==1||searched.input!=='한과')throw Error('Header search regression '+JSON.stringify(searched));
+ console.log('PASS search navigates directly to visible results',JSON.stringify(searched));
+ await screen('08-search-results.png');
+ await navigate('/stores/?q='+encodeURIComponent('없는특수상품'));
+ const empty=await evalJS('(()=>({message:!!document.querySelector(".directory-empty"),clear:!!document.querySelector(".clear-filters"),products:document.querySelectorAll(".tile").length}))()');
+ if(!empty.message||!empty.clear||empty.products!==0)throw Error('Empty search state regression '+JSON.stringify(empty));
+ console.log('PASS empty search recovery',JSON.stringify(empty));
+
+ // UI-only demo cart must work without fake checkout, without page reload.
+ await navigate('/product/honeybread-10/');
+ const added=await evalJS('(()=>{localStorage.removeItem("smallshop-demo-cart");document.querySelector("button[data-qty=1]").click();document.querySelector("button[data-add]").click();return {qty:document.querySelector("#qty")?.textContent,amount:document.querySelector("#amount")?.textContent,cart:document.querySelector(".header-account .count")?.textContent,notice:document.querySelector("#addnotice")?.textContent,stored:JSON.parse(localStorage.getItem("smallshop-demo-cart")||"[]")}})()');
+ if(added.qty!=='2'||added.amount!=='26,000원'||added.cart!=='2'||added.stored[0]?.qty!==2)throw Error('Demo cart add/count regression '+JSON.stringify(added));
+ console.log('PASS product quantity and live cart badge',JSON.stringify(added));
+ await screen('09-product-cart.png');
+ await navigate('/cart/');
+ const cart=await evalJS('(()=>{const btn=document.querySelector("button[data-delta=1]");if(!btn)return {error:"cart button missing"};btn.click();return {qty:JSON.parse(localStorage.getItem("smallshop-demo-cart")||"[]")[0]?.qty,text:document.querySelector(".summary")?.textContent.slice(0,190),disabled:!!document.querySelector(".summary button[disabled]")}})()');
+ if(cart.qty!==3||!cart.text.includes('39,000원')||!cart.disabled)throw Error('Cart summary/edit regression '+JSON.stringify(cart));
+ console.log('PASS cart quantity totals with checkout disabled',JSON.stringify(cart));
+ await navigate('/stores/');
+ const fallback=await evalJS('(()=>{const item=document.querySelector(".storetile img");item.dispatchEvent(new Event("error"));return {src:item.getAttribute("src"),alt:item.getAttribute("alt"),fallback:item.dataset.fallback}})()');
+ if(!fallback.src.endsWith('/assets/food-placeholder.svg')||fallback.fallback!=='true')throw Error('Image fallback regression '+JSON.stringify(fallback));
+ console.log('PASS remote image failure fallback',JSON.stringify(fallback));
+
+ await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await navigate('/stores/?category='+encodeURIComponent('반찬'));
+ const mobileStore=await evalJS('(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,shops:document.querySelectorAll(".storetile").length,filters:[...document.querySelectorAll(".facet-chip")].map(x=>Math.round(x.getBoundingClientRect().height))}))()');
+ if(mobileStore.scroll>mobileStore.width+3||mobileStore.shops!==2||Math.min(...mobileStore.filters)<35)throw Error('Mobile storefront search regression '+JSON.stringify(mobileStore));
+ console.log('PASS mobile search/facets without overflow',JSON.stringify(mobileStore));
+ await screen('10-mobile-stores.png');
+ await cdp('Emulation.clearDeviceMetricsOverride');
+
  if(errors.length)console.warn('Browser exceptions',JSON.stringify(errors.slice(-12)));
  console.log('ALL_GEO_BROWSER_TESTS_PASSED');
 }catch(err){
