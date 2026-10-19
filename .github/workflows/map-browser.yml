@@ -1,0 +1,38 @@
+name: Map browser QA (Chrome)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/map-browser.yml'
+      - 'tests/geo-smoke.mjs'
+      - 'assets/map.js'
+      - 'assets/map.css'
+      - 'assets/site.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chrome-map-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check installed Chrome and syntax
+        run: |
+          node --version
+          google-chrome --version
+          node --check tests/geo-smoke.mjs
+      - name: Test live map tiles, markers, card and list interaction
+        run: node tests/geo-smoke.mjs
+      - name: Save map screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smallshop-map-browser-screenshots
+          path: map-qa-artifacts/
+          retention-days: 7
