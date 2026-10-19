@@ -32,9 +32,9 @@ const goods=[
  ['citrus-tea',5,'제주 감귤청 500ml',15000,'차·음료']
 ];
 const records=[
- ['충무김밥','경남 통영시',8000,photo.a],
- ['밀면','부산광역시',9000,photo.c],
- ['국밥','대구광역시',10000,photo.d]
+ ['충무김밥','경남 통영시',8000,'https://commons.wikimedia.org/wiki/Special:FilePath/Chungmu_gimbab.jpg?width=800'],
+ ['밀면','부산광역시',9000,'https://commons.wikimedia.org/wiki/Special:FilePath/Milmyeon.jpg?width=800'],
+ ['국밥','대구광역시',10000,'https://commons.wikimedia.org/wiki/Special:FilePath/Korean_soup-Gukbap-01.jpg?width=800']
 ];
 const won=n=>new Intl.NumberFormat('ko-KR').format(n)+'원';
 const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -124,7 +124,7 @@ function header(){
  nav('/stores?category='+encodeURIComponent('간식·빵'),icon('cake')+' 간식·빵')+nav('/stores?category='+encodeURIComponent('반찬'),icon('salad')+' 반찬')+nav('/stores?category='+encodeURIComponent('차·음료'),icon('leaf')+' 차·음료')+nav('/stores?q='+encodeURIComponent('꿀빵'),icon('wheat')+' 꿀빵')+nav('/stores?q='+encodeURIComponent('한과'),icon('cookie')+' 한과')+
  '</div></nav></header>';
 }
-function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>일부 예시 음식 사진: 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0) · Wikimedia Commons</small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/join','입점 상담 안내')+' &nbsp; '+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
+function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>예시 이미지 출처: Wikimedia Commons / 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0), <a href="https://commons.wikimedia.org/wiki/File:Chungmu_gimbab.jpg" target="_blank" rel="noopener noreferrer">Tmannya (CC BY-SA 3.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Milmyeon.jpg" target="_blank" rel="noopener noreferrer">Minseong Kim (CC BY-SA 4.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Korean_soup-Gukbap-01.jpg" target="_blank" rel="noopener noreferrer">egg / Hong Yun Seon (CC BY 2.0)</a></small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/join','입점 상담 안내')+' &nbsp; '+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
 function heading(title,path,action){return '<div class="heading"><h2>'+title+'</h2>'+(path?nav(path,(action||'전체 보기')+' →','more'):'')+'</div>'}
 function intro(top,title,description){return '<div class="intro"><small>'+top+'</small><h1>'+title+'</h1><p>'+description+'</p></div>'}
 function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div class="tilepic">'+img(photo[s[5]],g[2])+'<span>'+s[2]+'</span></div><div class="tilebody"><small>'+g[4]+' · 데모 상품</small><h3>'+g[2]+'</h3><div class="tilefoot"><b>'+won(g[3])+'</b><small>상품 보기 ›</small></div></div>','tile')}
