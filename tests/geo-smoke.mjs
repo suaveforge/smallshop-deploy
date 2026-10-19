@@ -85,6 +85,28 @@ try{
  console.log('PASS national real map',JSON.stringify(national));
  if(national.storeCount!==6)throw Error('Six demo shops not found');
  await screen('01-national-map.png');
+
+ // Every filter drives both visible pins and the linked list, not just its own label.
+ const filters=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");return [...root.querySelectorAll("[data-map-category]")].map(x=>({name:x.dataset.mapCategory,count:x.querySelector("span")?.textContent}))})()');
+ if(filters.map(x=>x.name).join('|')!=='전체|간식·빵|반찬|차·음료')throw Error('Category filter choices incorrect: '+JSON.stringify(filters));
+ console.log('PASS category chips',JSON.stringify(filters));
+ const savory=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");root.querySelector("[data-map-category=\\"반찬\\"]").click();const state=root.__smallshopMapState;return {category:state.category,layerCount:state.layer.getLayers().length,visibleRows:[...root.querySelectorAll("[data-map-item]")].filter(x=>!x.hidden).map(x=>x.dataset.mapItem),status:root.querySelector(".store-map-count")?.textContent}})()');
+ if(savory.category!=='반찬'||savory.visibleRows.length!==2||!savory.visibleRows.includes('busan-eomuk')||!savory.visibleRows.includes('jeonju-pickle'))throw Error('Category filter/list sync failed '+JSON.stringify(savory));
+ console.log('PASS shared filter/map/list',JSON.stringify(savory));
+ const filteredList=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");root.querySelector("[data-map-view=list]").click();return {listVisible:!root.querySelector(".store-map-list").hidden,shown:[...root.querySelectorAll("[data-map-item]")].filter(x=>!x.hidden).map(x=>x.dataset.mapItem)}})()');
+ if(!filteredList.listVisible||filteredList.shown.length!==2)throw Error('Filtered list mode failed '+JSON.stringify(filteredList));
+ console.log('PASS list filtered to same two shops',JSON.stringify(filteredList));
+ const listFocus=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");root.querySelector("[data-map-focus=busan-eomuk]").click();const s=root.__smallshopMapState;const card=root.querySelector(".map-selected-card");return {mapMode:root.dataset.mapMode,id:s.selectedId,cardVisible:!card.hidden,photo:!!card.querySelector(".selected-card-photo img"),story:card.textContent.includes("인터뷰"),link:!!card.querySelector("a[href*=store]"),product:!!card.querySelector("a[href*=product]")}})()');
+ if(listFocus.id!=='busan-eomuk'||listFocus.mapMode!=='map'||!listFocus.cardVisible||!listFocus.photo||!listFocus.link||!listFocus.product||!listFocus.story)throw Error('List/map/card connection failed '+JSON.stringify(listFocus));
+ console.log('PASS list selection to photographic map card',JSON.stringify(listFocus));
+ await screen('01b-filtered-store-card.png');
+ const selectedList=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");root.querySelector("[data-map-view=list]").click();return {visible:[...root.querySelectorAll("[data-map-item]")].filter(x=>!x.hidden).map(x=>x.dataset.mapItem),selected:root.querySelector("[data-map-item=busan-eomuk]")?.getAttribute("aria-current")}})()');
+ if(selectedList.selected!=='true'||selectedList.visible.join(',')!=='busan-eomuk')throw Error('Viewport/list selected sync failed '+JSON.stringify(selectedList));
+ console.log('PASS viewport/selection linked list',JSON.stringify(selectedList));
+ const cleared=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");root.querySelector("[data-map-view=map]").click();root.querySelector("[data-map-reset]").click();const s=root.__smallshopMapState;return {category:s.category,selection:s.selectedId,visibleRows:[...root.querySelectorAll("[data-map-item]")].filter(x=>!x.hidden).length}})()');
+ if(cleared.category!=='전체'||cleared.selection!==null||cleared.visibleRows!==6)throw Error('Reset to national map failed '+JSON.stringify(cleared));
+ console.log('PASS reset all stores',JSON.stringify(cleared));
+
  const clusterBefore=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");const state=root.__smallshopMapState;const pin=root.querySelector(".smallshop-cluster-marker");if(!pin)return {cluster:false};const zoom=state.map.getZoom();pin.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));return {cluster:true,zoom};})()');
  if(clusterBefore.cluster){
    await sleep(1600);
@@ -124,7 +146,17 @@ try{
  const mobileList=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");root.querySelector("[data-map-view=list]").click();return {visible:!root.querySelector(".store-map-list").hidden,count:root.querySelectorAll(".map-list-item").length}})()');
  if(!mobileList.visible||mobileList.count!==6)throw Error('Mobile list toggle failed '+JSON.stringify(mobileList));
  console.log('PASS mobile list mode',JSON.stringify(mobileList));
+ 
+ await navigate('/join/');
+ const join=await evalJS('(()=>({title:document.title,fee:document.body.innerText.includes("중개수수료 1%"),free:document.body.innerText.includes("입점비 무료"),interview:document.body.innerText.includes("인터뷰"),mailto:[...document.querySelectorAll("a[href^=mailto]")].some(x=>x.href.includes("contact@suaveforge.com")),form:document.querySelectorAll("form").length}))()');
+ if(!join.fee||!join.free||!join.interview||!join.mailto||join.form!==0)throw Error('Merchant outreach page content incorrect '+JSON.stringify(join));
+ console.log('PASS on-site outreach page',JSON.stringify(join));
+ await screen('06-join-page-mobile.png');
  await cdp('Emulation.clearDeviceMetricsOverride');
+ await navigate('/');
+ const imagery=await evalJS('(()=>[...document.querySelectorAll("img")].slice(0,12).map(x=>({alt:x.alt,complete:x.complete,loaded:x.naturalWidth>0})))()');
+ console.log('HOME_IMAGES',JSON.stringify(imagery));
+
 
  if(errors.length)console.warn('Browser exceptions',JSON.stringify(errors.slice(-12)));
  console.log('ALL_GEO_BROWSER_TESTS_PASSED');
