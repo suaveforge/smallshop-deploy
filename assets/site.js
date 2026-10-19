@@ -43,7 +43,18 @@ let selectedQty=1;
 function readCart(){try{const x=JSON.parse(localStorage.getItem('smallshop-demo-cart')||'[]');return Array.isArray(x)?x.filter(z=>goods.some(p=>p[0]===z.id)&&z.qty>0):[]}catch{return []}}
 function writeCart(x){localStorage.setItem('smallshop-demo-cart',JSON.stringify(x))}
 function addCart(id,q){let cart=readCart();const existing=cart.find(x=>x.id===id);if(existing)existing.qty=Math.min(99,existing.qty+q);else cart.push({id:id,qty:q});writeCart(cart)}
-function header(){const cnt=readCart().reduce((n,x)=>n+x.qty,0);return '<header class="header"><div class="wrap mast">'+nav('/','<span class="mark">⌂</span>작은가게','logo')+'<form id="search" class="search"><input name="q" type="search" aria-label="상품 검색" placeholder="지역이나 먹거리를 검색해 보세요"><button aria-label="검색">⌕</button></form>'+nav('/cart','♧ <span class="cartlabel">장바구니</span>'+(cnt?'<b class="count">'+cnt+'</b>':''),'cart')+'</div><nav class="bar"><div class="wrap links">'+nav('/regions','⌖ 전국지도')+nav('/stores','▤ 작은가게')+nav('/records','▧ 맛집기록')+'</div></nav></header>'}
+const hanokLogo='<svg viewBox="0 0 48 48" fill="none" aria-hidden="true" width="40" height="40"><path d="M3 23 24 6l21 17-5 2-16-12L8 25z" fill="#b33e35"/><path d="M12 23h25v21H12z" fill="#b33e35"/><path d="M18 28h13v16H18z" fill="#fff7f0"/><path d="M23 28v16" stroke="#b33e35" stroke-width="2"/><path d="M9 22h30v5H9zM23 6l2-5 2 5z" fill="#9e302e"/><path d="M5 44h38" stroke="#b33e35" stroke-width="3"/></svg>';
+function header(){
+ const count=readCart().reduce((n,x)=>n+x.qty,0);
+ return '<header class="header"><div class="wrap mast">'+
+ nav('/',hanokLogo+'<span class="brandword">작은가게</span><small>좋은 사람이 만드는<br>지역의 맛, 전국으로</small>','logo')+
+ '<form id="search" class="search"><input name="q" type="search" aria-label="상품 검색" placeholder="어떤 지역의 어떤 먹거리를 찾고 계신가요?"><button aria-label="검색">⌕</button></form>'+
+ '<div class="header-account">'+nav('/','♙ 로그인','account-link')+nav('/','회원가입','account-link')+nav('/cart','🛒 <span class="cartlabel">장바구니</span>'+(count?'<b class="count">'+count+'</b>':''),'cart')+'</div></div>'+
+ '<nav class="bar"><div class="wrap links">'+nav('/stores','☰ &nbsp; 전체 카테고리','nav-category')+
+ nav('/regions','📍 전국지도')+nav('/stores','🌺 작은가게 파트너')+nav('/records','🫙 맛집기록')+
+ nav('/?q=간식','🍮 디저트')+nav('/?q=반찬','🥗 반찬')+nav('/?q=떡','🍡 떡')+nav('/?q=장아찌','🥬 김치')+nav('/?q=한과','🍪 한과')+
+ '</div></nav></header>';
+}
 function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>⌂ 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
 function heading(title,path,action){return '<div class="heading"><h2>'+title+'</h2>'+(path?nav(path,(action||'전체 보기')+' →','more'):'')+'</div>'}
 function intro(top,title,description){return '<div class="intro"><small>'+top+'</small><h1>'+title+'</h1><p>'+description+'</p></div>'}
@@ -51,14 +62,48 @@ function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div c
 function storeTile(s){return nav('/store/'+s[0],img(photo[s[5]],s[1])+'<div class="storetext"><small>'+s[2]+' · '+s[4]+'</small><h3>'+s[1]+'</h3><p>지역 먹거리와 점주 인터뷰를 소개하는 예시입니다.</p><strong>가게 이야기 보기 →</strong></div>','storetile')}
 function regionChips(){return '<div class="chips">'+regions.map(r=>nav('/region/'+r[0],'⌖ '+r[1])).join('')+'</div>'}
 function recordTile(r){return '<div class="record">'+img(r[3],r[0])+'<div><small>'+r[1]+'</small><h3>'+r[0]+'</h3><p>방문 당시 메뉴·가격 기록 예시입니다.</p><b>'+won(r[2])+'</b></div></div>'}
+function regionArtwork(){
+ return '<div class="map-art" aria-label="지역별 안내용 한국 지도 일러스트">'+
+ '<svg viewBox="0 0 420 340" aria-hidden="true" preserveAspectRatio="xMidYMid meet">'+
+ '<defs><linearGradient id="land" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#d8e5c5"/><stop offset=".65" stop-color="#b4d4b1"/><stop offset="1" stop-color="#e5ddb8"/></linearGradient><pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="2" fill="#d0dfc9"/></pattern></defs>'+
+ '<rect width="420" height="340" fill="#e6f2f2"/><g opacity=".55" fill="none" stroke="#99c7d5" stroke-width="2"><path d="M21 78q8-6 16 0t16 0M327 46q8-6 16 0t16 0M345 240q7-6 14 0t14 0M29 287q8-5 16 0t16 0"/></g>'+
+ '<path d="M196 10l42 18 19 28-5 31 25 29-8 31 27 35-12 31 13 18-33 30-12 30-19-5-13 27-38 8-26-20-19-10-9-29-15-15 5-31-15-23 21-39-7-26 20-33-4-32 33-26z" fill="url(#land)" stroke="#a5c39d" stroke-width="3"/>'+
+ '<path d="M165 26l36 44-20 46 30 38-27 38 16 29-29 49M241 55l-12 72 27 38-17 55 24 30M145 142l118 8M137 225l133-9" stroke="#f8f5e8" stroke-width="2.5" opacity=".85" fill="none"/>'+
+ '<g fill="#8eb78d" opacity=".8"><circle cx="174" cy="67" r="11"/><circle cx="219" cy="103" r="10"/><circle cx="157" cy="180" r="10"/><circle cx="239" cy="247" r="12"/><circle cx="182" cy="251" r="9"/></g>'+
+ '<g fill="#63956d"><path d="M170 65v-17m-10 10 10-10 10 10M216 102V84m-8 10 8-10 8 10M153 180v-15m-8 8 8-8 8 8M234 249v-18m-9 10 9-10 9 10" stroke="#63956d" stroke-width="4" stroke-linecap="round"/></g>'+
+ '<g fill="#cde0c4" stroke="#fff" stroke-width="2"><ellipse cx="170" cy="305" rx="21" ry="13"/><ellipse cx="209" cy="319" rx="10" ry="5"/></g>'+
+ '<g fill="#7eafaf" opacity=".7"><path d="M56 299q6-5 12 0t12 0M330 293q6-5 12 0t12 0" fill="none" stroke="#7eafaf" stroke-width="2"/></g></svg>'+
+ '<div class="map-pins">'+
+ nav('/region/tongyeong','📍 경남 42','map-pin mp-gyeongnam')+
+ nav('/region/jeonju','📍 전북 18','map-pin mp-jeonbuk')+
+ nav('/region/gangneung','📍 강원 28','map-pin mp-gangwon')+
+ nav('/region/gongju','📍 충남 56','map-pin mp-chungnam')+
+ nav('/region/jeju','📍 제주 8','map-pin mp-jeju')+
+ nav('/region/busan','📍 부산 14','map-pin mp-busan')+
+ '</div><span class="map-warning">숫자는 디자인 시연용입니다</span></div>';
+}
 function home(){
  const searchTerm=new URLSearchParams(location.search).get('q')||'';
  const filtered=goods.filter(g=>[g[2],g[4],stores[g[1]][1],stores[g[1]][2]].join(' ').includes(searchTerm));
- return note+'<div class="hero"><div class="herotext"><small>전국의 작은 먹거리 지도</small><h1>전국의 작은 맛을<br><em>찾아서</em></h1><p>방문해서 듣고, 기록하고, 소개합니다.<br>지역의 가게 이야기부터 상품까지 한곳에서.</p>'+nav('/stores','가게 둘러보기 →','heroaction')+'</div><div class="heroimg">'+img(photo.a,'작은 가게 음식 이미지')+'<span>통영 · 인터뷰 준비 중 ◉</span></div></div>'+
- '<div class="features"><section class="panel">'+heading('지역으로 찾기','/regions','전국 지역 보기')+'<p>전국 시·군·구별로 작은 가게를 찾아보세요.</p>'+regionChips()+'<small>정식 전국 지도는 구축 예정</small></section>'+
- '<section class="panel">'+heading('이번에 만나는 가게','/store/tongyeong-honey','가게 이야기')+'<div class="featured">'+img(photo.a,'통영 꿀빵 가게')+'<div><small>경남 통영시</small><h3>통영 꿀빵 작업실</h3><p>점주와 직접 대화한 영상이 공개되면 이곳에 표시됩니다.</p>'+status('인터뷰 촬영 전')+'<p>'+nav('/store/tongyeong-honey','자세히 보기 →','red')+'</p></div></div></section></div>'+
- '<section class="section">'+heading('배송 가능한 작은가게','/stores','가게 모두 보기')+(searchTerm?'<p class="muted">검색: '+esc(searchTerm)+' · '+filtered.length+'개</p>':'')+'<div class="products">'+(filtered.map(productTile).join('')||'검색 결과가 없습니다.')+'</div></section>'+
- '<section class="section">'+heading('그 동네에서 먹고 왔어요','/records','맛집기록 더보기')+'<div class="records">'+records.map(recordTile).join('')+'</div></section>'
+ return note+
+ '<section class="home-cinema">'+
+ '<div class="cinema-food">'+img(photo.a,'꿀빵을 만드는 가게의 음식 이미지')+'</div>'+
+ '<div class="cinema-overlay"><small>사람이 만든, 지역의 진짜 맛</small><h1>전국의 <em>작은 맛</em>을 찾아서</h1>'+
+ '<p>한 사람의 이야기로 더 특별해지는 지역의 먹거리<br>작은가게가 전국의 좋은 사장님들을 소개합니다.</p>'+
+ nav('/stores','지금, 이야기를 만나보세요 →','cinema-action')+'</div>'+
+ '<div class="cinema-aside"><div class="cinema-quote">“ 좋은 재료, 정성스러운 손맛.<br>지역의 이야기가 담긴 먹거리 ”</div>'+
+ '<p>현장 인터뷰는 촬영·동의 후 공개됩니다.</p><div class="cinema-play">▶ &nbsp; 인터뷰 준비 중</div></div>'+
+ '<div class="cinema-pager">● &nbsp; ○ &nbsp; ○ &nbsp; ○</div></section>'+
+ '<div class="discovery"><section class="geo-panel"><div class="geo-copy"><h2>📍 지역으로 찾기</h2><p>지도를 선택하면 해당 지역의<br>작은가게를 만날 수 있어요.</p>'+nav('/regions','전체 지역 보기 →','geo-button')+'</div>'+regionArtwork()+'</section>'+
+ '<section class="story-panel"><div class="story-head"><span>이달의 작은가게</span><small>01 / 03 &nbsp; ›</small></div>'+
+ '<div class="story-content"><div class="story-gallery"><div class="story-main-image">'+img(photo.a,'통영 꿀빵 이미지')+'</div><div class="story-thumb-strip">'+img(photo.a,'꿀빵')+img(photo.e,'전통 과자')+img(photo.d,'바닷가 가게')+'</div></div>'+
+ '<div class="story-description"><small>바다의 달콤함을 담은</small><h2>통영 꿀빵 작업실</h2><p>📍 경남 통영시</p><p>지역의 이야기를 담아 정성으로 만드는 먹거리를 소개합니다.<br>현장 인터뷰는 준비 중입니다.</p>'+
+ '<div class="story-actions">'+nav('/store/tongyeong-honey','가게 이야기 →','story-primary')+nav('/product/honeybread-10','상품 보기 →','story-secondary')+'</div>'+
+ '<div class="story-quote">“ 좋은 재료와 정성을 한 입에 담고 싶습니다. ”<small>가게 소개 예시 문구</small></div></div></div></section></div>'+
+ '<section class="section shelf">'+heading('🛍 배송 가능한 작은가게','/stores','전체 상품 보기')+'<p class="shelf-intro">전국의 작은가게가 정성껏 만든 먹거리를 집에서도 만나보세요.</p>'+
+ (searchTerm?'<p class="muted">검색: '+esc(searchTerm)+' · '+filtered.length+'개</p>':'')+
+ '<div class="products">'+filtered.map((g,i)=>'<div class="merch-tile">'+productTile(g)+'<div class="merch-label">'+(i%3===0?'BEST':i%3===1?'인기':'추천')+'</div><div class="shipping-label">전국배송</div></div>').join('')+'</div></section>'+
+ '<section class="section local-records">'+heading('🍴 그 동네에서 먹고 왔어요','/records','맛집기록 더보기')+'<p class="shelf-intro">작은가게가 직접 다녀온 지역의 맛집을 소개합니다.</p><div class="records">'+records.map(recordTile).join('')+'</div></section>';
 }
 function regionsPage(){return note+intro('지역으로 찾기','전국의 작은가게','전국 시·군·구별 가게를 찾는 화면입니다. 현재 예시 데이터입니다.')+'<div class="regions">'+regions.map(r=>nav('/region/'+r[0],'<div class="pin">⌖</div><small>'+r[2]+'</small><h2>'+r[1]+'</h2><p>예시 가게 1곳</p><span>→</span>','region')).join('')+'</div>'}
 function oneRegion(id){const r=regions.find(r=>r[0]===id);if(!r)return notfound();const st=stores.filter(s=>s[3]===id);return note+'<div class="crumb">'+nav('/regions','전국지도')+' / '+r[1]+'</div>'+intro(r[2]+' · 지역별 검색',r[1]+'의 작은가게','해당 지역 가게 및 상품을 확인하세요.')+heading('가게')+'<div class="stores">'+st.map(storeTile).join('')+'</div><section class="section">'+heading('상품')+'<div class="products">'+goods.filter(g=>st.some(s=>s[0]===stores[g[1]][0])).map(productTile).join('')+'</div></section>'}
@@ -100,7 +145,7 @@ function route(){let path=decodeURI(location.pathname);if(BASE&&path.startsWith(
  case 'partner':return ['사장님 데모',dashboard(false)];
  default:return ['페이지를 찾을 수 없음',notfound()]
  }}
-function render(scroll){const r=route();document.title=r[0]+' | 작은가게';document.getElementById('app').innerHTML=header()+'<main class="wrap main">'+r[1]+'</main>'+footer();if(scroll)window.scrollTo(0,0)}
+function render(scroll){const r=route();document.title=r[0]+' | 작은가게';const path=location.pathname.replace(BASE,'');document.body.classList.toggle('dashboard-mode',path.startsWith('/admin')||path.startsWith('/partner'));document.getElementById('app').innerHTML=header()+'<main class="wrap main">'+r[1]+'</main>'+footer();if(scroll)window.scrollTo(0,0)}
 function goto(url){history.pushState(null,'',link(url));selectedQty=1;render(true)}
 document.addEventListener('click',e=>{
  const l=e.target.closest('a[data-route]');if(l&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey){e.preventDefault();const u=new URL(l.href);let pathname=u.pathname;if(BASE&&pathname.startsWith(BASE))pathname=pathname.slice(BASE.length);goto(pathname+u.search);return}
