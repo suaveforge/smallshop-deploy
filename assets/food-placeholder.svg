@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-label="작은가게 이미지 준비 중">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6ecdf"/><stop offset="1" stop-color="#e8d8c4"/></linearGradient></defs>
+<rect width="600" height="420" fill="url(#bg)"/>
+<ellipse cx="310" cy="308" rx="200" ry="61" fill="#ccb89b" opacity=".42"/>
+<path d="M136 261c0-60 38-105 99-105 39-43 115-49 151 2 68 0 115 53 95 121-16 65-92 84-161 66-86 23-185-6-184-84Z" fill="#cc9870" stroke="#a36f50" stroke-width="8"/>
+<path d="M156 268c98-21 204-18 305 5M209 187c20 34 21 71 8 112M302 162c-5 42-7 79-4 120M380 176c-17 28-26 70-21 111" fill="none" stroke="#efd0ab" stroke-width="11" stroke-linecap="round" opacity=".9"/>
+<g fill="#fff4e2"><ellipse cx="230" cy="217" rx="9" ry="4" transform="rotate(30 230 217)"/><ellipse cx="350" cy="220" rx="9" ry="4" transform="rotate(-23 350 220)"/><ellipse cx="302" cy="247" rx="10" ry="4" transform="rotate(10 302 247)"/></g>
+<text x="300" y="385" font-size="24" font-weight="700" font-family="sans-serif" text-anchor="middle" fill="#6b5748">작은가게 · 이미지 준비 중</text>
+</svg>
