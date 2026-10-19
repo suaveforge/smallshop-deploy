@@ -172,7 +172,10 @@ function dashboard(admin){
       ['통영 꿀빵 작업실','경남 통영','꿀빵','검토 대기'],
       ['전주 장아찌 가게','전북 전주','장아찌','검토 대기'],
       ['강릉 한과 가게','강원 강릉','한과','검토 대기']
-    ],['가게명','지역','주요 상품','상태']),'3건 · 예시','panel-approval');
+    ],['가게명','지역','주요 상품','상태'])+
+   '<div id="panel-products" class="quick-products"><b>등록 상품 미리보기</b>'+
+   goods.slice(0,3).map(g=>'<div>'+g[2]+'<span>'+won(g[3])+'</span></div>').join('')+'</div>',
+   '3건 · 예시','panel-approval');
   panels+=dashPanel('🛒 최근 주문',demoTable([
    ['DEMO-001','통영 꿀빵 작업실','13,000원','결제완료'],
    ['DEMO-002','전주 장아찌 가게','16,000원','상품준비'],
