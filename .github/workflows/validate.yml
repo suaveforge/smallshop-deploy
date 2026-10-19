@@ -15,6 +15,14 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Validate public storefront JavaScript and route files
+        run: |
+          node --check assets/site.js
+          test -s index.html
+          test -s 404.html
+          test -s assets/site.css
+          test "$(cat CNAME)" = smallshop.suaveforge.com
+          for route in regions stores records cart admin partner; do test -s "$route/index.html"; done
       - name: Validate Docker Compose
         run: docker compose -f compose.yaml config --quiet
       - name: Validate shell scripts
