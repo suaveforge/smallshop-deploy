@@ -97,13 +97,13 @@ function header(){
  return '<header class="header"><div class="wrap mast">'+
  nav('/',hanokLogo+'<span class="brandword">작은가게</span><small>좋은 사람이 만드는<br>지역의 맛, 전국으로</small>','logo')+
  '<form id="search" class="search"><input name="q" type="search" aria-label="상품 검색" placeholder="어떤 지역의 어떤 먹거리를 찾고 계신가요?"><button aria-label="검색">'+icon('search')+'</button></form>'+
- '<div class="header-account">'+nav('/',icon('user')+' 로그인','account-link')+nav('/','회원가입','account-link')+nav('/cart',icon('cart')+' <span class="cartlabel">장바구니</span>'+(count?'<b class="count">'+count+'</b>':''),'cart')+'</div></div>'+
+ '<div class="header-account">'+nav('/join',icon('store')+' 입점 상담','account-link')+nav('/cart',icon('cart')+' <span class="cartlabel">장바구니</span>'+(count?'<b class="count">'+count+'</b>':''),'cart')+'</div></div>'+
  '<nav class="bar"><div class="wrap links">'+nav('/stores',icon('menu')+' 전체 카테고리','nav-category')+
- nav('/regions',icon('mapPin')+' 전국지도')+nav('/stores',icon('store')+' 작은가게 파트너')+nav('/records',icon('book')+' 맛집기록')+
+ nav('/regions',icon('mapPin')+' 전국지도')+nav('/join',icon('store')+' 입점 상담')+nav('/records',icon('book')+' 맛집기록')+
  nav('/?q=간식',icon('cake')+' 디저트')+nav('/?q=반찬',icon('salad')+' 반찬')+nav('/?q=떡',icon('wheat')+' 떡')+nav('/?q=장아찌',icon('leaf')+' 김치')+nav('/?q=한과',icon('cookie')+' 한과')+
  '</div></nav></header>';
 }
-function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>일부 예시 음식 사진: 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0) · Wikimedia Commons</small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
+function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>일부 예시 음식 사진: 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0) · Wikimedia Commons</small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/join','입점 상담 안내')+' &nbsp; '+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
 function heading(title,path,action){return '<div class="heading"><h2>'+title+'</h2>'+(path?nav(path,(action||'전체 보기')+' →','more'):'')+'</div>'}
 function intro(top,title,description){return '<div class="intro"><small>'+top+'</small><h1>'+title+'</h1><p>'+description+'</p></div>'}
 function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div class="tilepic">'+img(photo[s[5]],g[2])+'<span>'+s[2]+'</span></div><div class="tilebody"><small>'+g[4]+' · 데모 상품</small><h3>'+g[2]+'</h3><div class="tilefoot"><b>'+won(g[3])+'</b><small>상품 보기 ›</small></div></div>','tile')}
@@ -115,30 +115,44 @@ function recordTile(r){return '<div class="record">'+img(r[3],r[0])+'<div><small
 window.smallshopMapStores=stores.map(s=>{
  const first=goods.find(g=>stores[g[1]][0]===s[0]);
  return {id:s[0],name:s[1],region:s[2],city:s[3],category:s[4],
-   photo:photo[s[5]],productId:first?first[0]:null,
+   photo:photo[s[5]],group:first?first[4]:'기타',productId:first?first[0]:null,
    productName:first?first[2]:null,productPrice:first?first[3]:null};
 });
 function storeMapPanel(scope='all',size='wide'){
  const regional=scope==='all'?stores:stores.filter(s=>s[3]===scope);
+ const groups=['전체','간식·빵','반찬','차·음료'].filter(group=>
+   group==='전체'||regional.some(st=>goods.some(g=>stores[g[1]][0]===st[0]&&g[4]===group))
+ );
+ const categories=groups.map(group=>{
+   const n=group==='전체'?regional.length:regional.filter(st=>goods.some(g=>stores[g[1]][0]===st[0]&&g[4]===group)).length;
+   return '<button type="button" class="store-map-chip" data-map-category="'+esc(group)+'" aria-pressed="'+(group==='전체')+'">'+
+      esc(group)+' <span>'+n+'</span></button>';
+ }).join('');
  const title=size==='compact'?'지역으로 찾기':scope==='all'?'지도에서 작은가게 찾기':'이 지역의 작은가게';
- const descriptions=size==='compact'?'지도를 움직이고 가게 핀을 선택해 보세요.':'지도를 확대하면 개별 가게를 선택할 수 있습니다.';
- const list=regional.map(s=>'<article class="map-list-item">'+
-   img(photo[s[5]],s[1])+'<div class="map-list-summary"><small>'+esc(s[2])+' · '+esc(s[4])+'</small>'+
-   '<strong>'+esc(s[1])+'</strong><span>매장 주소 미확인 · 지역 중심 표시</span>'+
-   '<div class="map-list-actions"><button type="button" data-map-focus="'+esc(s[0])+'">'+icon('mapPin')+' 지도에서 보기</button>'+
-   nav('/store/'+s[0],'가게 이야기 →')+'</div></div></article>').join('');
+ const desc=size==='compact'?'업종 선택 후 가게 핀을 눌러보세요.':'업종을 선택하고, 지도에서 보고 싶은 가게를 찾아보세요.';
+ const list=regional.map(st=>{
+   const g=goods.find(item=>stores[item[1]][0]===st[0]);
+   return '<article class="map-list-item" data-map-item="'+esc(st[0])+'" data-map-category-value="'+esc(g?.[4]||'기타')+'">'+
+    '<div class="map-list-image">'+img(photo[st[5]],st[1])+'<span>시연</span></div>'+
+    '<div class="map-list-summary"><small>'+esc(st[2])+' · '+esc(st[4])+'</small>'+
+    '<strong>'+esc(st[1])+'</strong><span>'+esc(g?.[2]||'상품 준비 중')+' · 점주 인터뷰 준비 중</span>'+
+    '<div class="map-list-actions"><button type="button" data-map-focus="'+esc(st[0])+'">'+icon('mapPin')+' 지도에서 보기</button>'+
+    nav('/store/'+st[0],'가게 이야기 →')+'</div></div></article>';
+ }).join('');
  return '<div class="store-map-shell map-size-'+size+'" data-smallshop-map="'+esc(scope)+'">'+
- '<div class="store-map-heading"><div><h2>'+icon('mapPin')+' '+title+'</h2><p>'+descriptions+'</p></div>'+
+ '<div class="store-map-heading"><div><h2>'+icon('mapPin')+' '+title+'</h2><p>'+desc+'</p></div>'+
  '<div class="store-map-buttons" role="group" aria-label="가게 탐색 방식">'+
  '<button type="button" data-map-view="map" aria-pressed="true">'+icon('map')+' <span>지도</span></button>'+
  '<button type="button" data-map-view="list" aria-pressed="false">'+icon('menu')+' <span>목록</span></button></div></div>'+
- '<div class="store-map-view"><div class="store-map-canvas" role="region" tabindex="0" aria-label="가게 위치를 지역 중심으로 표시한 확대 가능한 지도">'+
+ '<div class="store-map-filters" role="group" aria-label="먹거리 업종 필터">'+categories+'</div>'+
+ '<div class="store-map-view"><div class="store-map-canvas" role="region" tabindex="0" aria-label="시연용 가게의 지역 중심을 표시한 확대 가능한 지도">'+
  '<div class="map-loading">'+icon('map')+' 지도를 불러오는 중입니다…</div></div>'+
- '<div class="map-selected-card" aria-live="polite" hidden></div>'+
- '</div><div class="store-map-list" hidden>'+list+'</div>'+
- '<div class="store-map-bottom"><small>'+regional.length+'개 시연 가게 · 핀은 <strong>지역 중심</strong> 표시이며 실제 매장 위치가 아닙니다.</small>'+
+ '<div class="map-selected-card" aria-live="polite" hidden></div></div>'+
+ '<div class="store-map-list" hidden>'+list+
+ '<p class="map-list-empty" hidden>해당 업종의 가게가 없습니다. 다른 업종을 선택하거나 전국 보기를 눌러보세요.</p></div>'+
+ '<div class="store-map-bottom"><small class="store-map-count" aria-live="polite">'+regional.length+'개 시연 가게 · 실제 매장 주소가 아닌 지역 중심 좌표입니다.</small>'+
  (size==='compact'?nav('/regions','전국 지도 크게 보기 →','store-map-all-link'):
- '<button type="button" data-map-reset>'+icon('map')+' 전국 보기</button>')+'</div></div>';
+ '<button type="button" data-map-reset>'+icon('map')+' '+(scope==='all'?'전국 보기':'지역 전체 보기')+'</button>')+'</div></div>';
 }
 function regionArtwork(){
  return storeMapPanel('all','compact');
@@ -157,15 +171,15 @@ function home(){
  '<p>현장 인터뷰는 촬영·동의 후 공개됩니다.</p><div class="cinema-play">'+icon('play')+' 인터뷰 준비 중</div></div>'+
  '<div class="cinema-pager">● &nbsp; ○ &nbsp; ○ &nbsp; ○</div></section>'+
  '<div class="discovery"><section class="geo-panel">'+regionArtwork()+'</section>'+
- '<section class="story-panel"><div class="story-head"><span>이달의 작은가게</span><small>01 / 03 &nbsp; ›</small></div>'+
+ '<section class="story-panel"><div class="story-head"><span>시연용 가게</span><small>01 / 03 &nbsp; ›</small></div>'+
  '<div class="story-content"><div class="story-gallery"><div class="story-main-image">'+img(photo.g,'통영 꿀빵 이미지')+'</div><div class="story-thumb-strip">'+img(photo.g,'꿀빵')+img(photo.e,'전통 과자')+img(photo.d,'바닷가 가게')+'</div></div>'+
  '<div class="story-description"><small>바다의 달콤함을 담은</small><h2>통영 꿀빵 작업실</h2><p>'+icon('mapPin')+' 경남 통영시</p><p>지역의 이야기를 담아 정성으로 만드는 먹거리를 소개합니다.<br>현장 인터뷰는 준비 중입니다.</p>'+
  '<div class="story-actions">'+nav('/store/tongyeong-honey','가게 이야기 →','story-primary')+nav('/product/honeybread-10','상품 보기 →','story-secondary')+'</div>'+
  '<div class="story-quote">“ 좋은 재료와 정성을 한 입에 담고 싶습니다. ”<small>가게 소개 예시 문구</small></div></div></div></section></div>'+
- '<section class="section shelf">'+heading(icon('shoppingBag')+' 배송 가능한 작은가게','/stores','전체 상품 보기')+'<p class="shelf-intro">전국의 작은가게가 정성껏 만든 먹거리를 집에서도 만나보세요.</p>'+
+ '<section class="section shelf">'+heading(icon('shoppingBag')+' 작은가게 상품 미리보기','/stores','전체 상품 보기')+'<p class="shelf-intro">가게 방문과 상품 검증이 끝나면 정성스러운 지역 먹거리를 소개하겠습니다.</p>'+
  (searchTerm?'<p class="muted">검색: '+esc(searchTerm)+' · '+filtered.length+'개</p>':'')+
  '<div class="products">'+filtered.map((g,i)=>'<div class="merch-tile">'+productTile(g)+'<div class="merch-label">'+(i%3===0?'BEST':i%3===1?'인기':'추천')+'</div><div class="shipping-label">전국배송</div></div>').join('')+'</div></section>'+
- '<section class="section local-records">'+heading(icon('utensils')+' 그 동네에서 먹고 왔어요','/records','맛집기록 더보기')+'<p class="shelf-intro">작은가게가 직접 다녀온 지역의 맛집을 소개합니다.</p><div class="records">'+records.map(recordTile).join('')+'</div></section>';
+ '<section class="section local-records">'+heading(icon('utensils')+' 그 동네에서 먹고 왔어요','/records','맛집기록 더보기')+'<p class="shelf-intro">지역 맛집 기록의 예시 화면입니다. 실제 방문 기록은 현장 취재 후 공개합니다.</p><div class="records">'+records.map(recordTile).join('')+'</div></section>';
 }
 function regionsPage(){
  return note+intro('전국지도 · 지도 기반 탐색','지도에서 작은가게를 찾아보세요','예시 가게 6곳을 지역 중심 좌표로 표시합니다. 지도를 확대하거나 목록에서 가게를 선택하세요.')+
@@ -325,6 +339,32 @@ function dashboard(admin){
     statBoxes(metrics)+'<div class="dashcards">'+panels+'</div>'+
    '</div></div>';
 }
+function joinPage(){
+ const email='contact@suaveforge.com';
+ const subject=encodeURIComponent('[작은가게] 가게 입점 상담 요청');
+ const body=encodeURIComponent('안녕하세요. 작은가게 입점 상담을 요청합니다.\n\n가게명:\n시·군·구:\n주요 수제 먹거리:\n연락 가능한 방법:\n\n※ 실제 입점·촬영·판매에 필요한 조건은 별도 상담 후 확인합니다.');
+ const mail='mailto:'+email+'?subject='+subject+'&body='+body;
+ return '<section class="join-hero"><div><small>지역의 맛과 사람을 소개합니다</small><h1>좋은 가게의 이야기가<br>전국에 전해지도록</h1>'+
+ '<p>작은가게는 지역에서 손으로 만드는 먹거리와 그 가게를 운영하는 사람의 이야기를 소개하는 플랫폼을 준비하고 있습니다.</p>'+
+ '<a class="join-contact" href="'+mail+'">'+icon('message')+' 입점 상담 문의하기</a><small class="join-email">메일이 열리지 않으면 '+email+' 으로 연락해 주세요.</small></div>'+
+ '<div class="join-visual">'+img(photo.g,'지역 수제 먹거리를 소개하는 예시 이미지')+'<span>예시 사진 · 실제 입점 가게 아님</span></div></section>'+
+ '<section class="join-section"><div class="join-heading"><small>PARTNER GUIDE</small><h2>사장님과 함께하는 방식</h2><p>현재는 입점 파트너를 찾고 있는 준비 단계입니다.</p></div>'+
+ '<div class="join-benefits">'+
+ '<article><span>'+icon('store')+'</span><h3>초기 입점비 무료</h3><p>실제 입점은 가게와 상품 확인 후 협의합니다. 지역과 업종별 파트너 원칙을 적용합니다.</p></article>'+
+ '<article><span>'+icon('video')+'</span><h3>인터뷰·영상 소개</h3><p>현장 인터뷰 및 소개 영상은 작은가게 운영팀이 촬영·제작·게시합니다. 초기 제작·게시비는 받지 않습니다.</p></article>'+
+ '<article><span>'+icon('percent')+'</span><h3>판매 중개수수료 1%</h3><p>판매가 이루어지면 플랫폼 중개수수료 1%를 적용할 계획입니다. 카드·PG, 택배·포장 등 실비는 별도입니다.</p></article>'+
+ '</div></section>'+
+ '<section class="join-section"><div class="join-heading"><small>WHAT WE CHECK</small><h2>가게를 방문하면 함께 확인합니다</h2></div>'+
+ '<div class="join-checklist">'+
+ [['가게·상품 소개','가게의 실제 운영 정보와 직접 만드는 상품, 대표 먹거리'],
+  ['택배 판매 가능 여부','포장, 보관, 유통기한, 배송 가능 지역과 예상 출고 일정'],
+  ['인터뷰 및 촬영 의사','대표자 동의, 촬영 가능한 장소와 소개 가능한 이야기'],
+  ['입점 조건 안내','같은 시·군·구의 동일 표준 업종 한 곳 원칙, 향후 계약·정산 조건']].map((x,i)=>
+ '<div><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+x[0]+'</strong><p>'+x[1]+'</p></div>').join('')+'</div></section>'+
+ '<section class="join-notice"><h2>현재는 서비스 준비 단계입니다.</h2><p>표시된 가게·상품은 시연용입니다. 실제 판매·결제, 회원가입, 가게 정보 등록은 아직 시작하지 않았습니다. 촬영과 입점 확정은 별도 동의와 계약, 식품 판매·표시 조건 확인 후 진행합니다.</p>'+
+ '<a href="'+mail+'" class="join-contact">'+icon('message')+' 상담 메일 작성</a> '+nav('/regions','지도 시연 보기 →','join-secondary')+'</section>';
+}
+
 function notfound(){return '<div class="panel empty"><h1>페이지가 없습니다.</h1>'+nav('/','홈으로 돌아가기 →','red')+'</div>'}
 function route(){let path=decodeURI(location.pathname);if(BASE&&path.startsWith(BASE))path=path.slice(BASE.length);const seg=path.split('/').filter(Boolean);switch(seg[0]){
  case undefined:return ['전국의 작은 먹거리를 찾아서',home()];
@@ -337,6 +377,7 @@ function route(){let path=decodeURI(location.pathname);if(BASE&&path.startsWith(
  case 'cart':return ['장바구니',cartPage()];
  case 'admin':return ['관리자 데모',dashboard(true)];
  case 'partner':return ['사장님 데모',dashboard(false)];
+ case 'join':return ['입점 상담 안내',joinPage()];
  default:return ['페이지를 찾을 수 없음',notfound()]
  }}
 function render(scroll){if(window.SmallshopMap)window.SmallshopMap.cleanup();const r=route();document.title=r[0]+' | 작은가게';const path=location.pathname.replace(BASE,'');document.body.classList.toggle('dashboard-mode',path.startsWith('/admin')||path.startsWith('/partner'));document.body.classList.toggle('dashboard-partner-view',path.startsWith('/partner'));document.getElementById('app').innerHTML=header()+'<main class="wrap main">'+r[1]+'</main>'+footer();window.dispatchEvent(new Event('smallshop:rendered'));if(scroll)window.scrollTo(0,0)}
