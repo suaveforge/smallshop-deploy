@@ -145,7 +145,7 @@ function partnerProducts(){
  }).join('')+'</div>';
 }
 function dashPanel(title,contents,label,cls=''){
- return '<section class="panel '+cls+'"><div class="ops-panel-title"><h2>'+title+'</h2><span>'+label+'</span></div>'+contents+'</section>';
+ return '<section id="'+cls+'" class="panel '+cls+'"><div class="ops-panel-title"><h2>'+title+'</h2><span>'+label+'</span></div>'+contents+'</section>';
 }
 function dashboard(admin){
  const navs=admin?['대시보드','입점·가게','상품','주문·정산','콘텐츠']:['홈','상품','주문/배송','정산','내 가게','문의/도움말'];
@@ -230,7 +230,7 @@ function dashboard(admin){
   '<div class="dashboard '+(admin?'dashboard-admin':'dashboard-partner')+'">'+
    '<aside class="sidebar">'+
     '<h3>'+(admin?'작은가게 관리자':'작은가게 파트너센터')+'</h3>'+
-     navs.map((x,i)=>'<a href="#'+(admin?'admin':'partner')+'-'+i+'"><span class="sidebar-symbol">'+['⌂','⬡','♧','₩','▣','?'][i]+'</span>'+x+'</a>').join('')+
+     navs.map((x,i)=>'<a href="#'+(admin?['panel-tasks','panel-approval','panel-products','panel-orders','panel-content'][i]:['panel-tasks','panel-products','panel-orders','panel-settlement','panel-shop','panel-interview'][i])+'"><span class="sidebar-symbol">'+['⌂','⬡','♧','₩','▣','?'][i]+'</span>'+x+'</a>').join('')+
     '<div class="sidebar-illustration" aria-hidden="true"><div>⌁ ⛵ ⌁</div><small>지역의 맛을 전국으로</small></div>'+
    '</aside><div class="dashmain">'+
     '<div class="dashtop"><div><small>'+(admin?'작은가게 운영팀':'통영 꿀빵 작업실 · 사장님 데모')+'</small>'+
