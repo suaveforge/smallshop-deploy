@@ -116,21 +116,130 @@ const orders=[['DEMO-001','꿀빵 10개입','13,000원','결제완료'],['DEMO-0
 function table(){return '<div class="scroller"><table><thead><tr><th>주문번호</th><th>상품</th><th>금액</th><th>상태</th></tr></thead><tbody>'+orders.map(r=>'<tr>'+r.map((cell,i)=>'<td>'+(i===3?status(cell):cell)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
 function kv(rows){return '<div class="kv">'+rows.map(r=>'<p>'+r[0]+'<b>'+r[1]+'</b></p>').join('')+'</div>'}
 function tasks(rows){return '<div class="tasks">'+rows.map(r=>'<div>▤ <b>'+r[0]+'</b><strong>'+r[1]+'</strong></div>').join('')+'</div>'}
-function dashboard(admin){const navs=admin?['오늘 할 일','입점·가게','상품','주문·정산','콘텐츠']:['오늘 할 일','상품','주문·배송','정산','내 가게'];const metrics=admin?[['입점 가게','6곳'],['입점 목표','10곳'],['등록 상품','6개'],['시연 주문','3건'],['거래액','47,000원'],['수수료 1%','470원']]:[['신규 주문','5건'],['배송 대기','3건'],['이번 달 매출','418,000원'],['정산 예정액','356,000원']];const panels=admin?[
- ['오늘 처리할 일',tasks([['입점 승인','3건'],['배송 문의','2건'],['상품 수정 검토','4건'],['정산 검토','1건']])],
- ['입점·가게',kv(stores.slice(0,4).map(s=>[s[1],s[2]]))],
- ['상품 현황',kv(goods.slice(0,4).map(g=>[g[2],won(g[3])]))],
- ['주문·정산',table()+'<p>판매중개수수료 <b>1%</b> · PG 실비 별도</p>'],
- ['콘텐츠',kv([['점주 인터뷰','0편'],['맛집기록','3건'],['촬영 준비','목표 10곳']])],
- ['지역별 분포',regionChips()]
+function statBoxes(list){
+ return '<div class="metrics">'+list.map(item=>
+   '<div class="statbox"><span class="stat-icon">'+item[2]+'</span><small>'+item[0]+'</small><b>'+item[1]+'</b><small class="stat-note">시연 데이터</small></div>'
+ ).join('')+'</div>';
+}
+function taskPanel(list){
+ return '<div class="tasklist-rich">'+list.map((item,i)=>
+ '<div class="task-rich"><span class="task-circle">'+['☑','♧','✎','▤'][i%4]+'</span><div><strong>'+item[0]+'</strong><small>'+item[2]+'</small></div><b>'+item[1]+'</b><span class="task-arrow">›</span></div>'
+ ).join('')+'</div>';
+}
+function demoTable(rows,headings){
+ return '<div class="scroller"><table class="ops-table"><thead><tr>'+headings.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+
+ rows.map(row=>'<tr>'+row.map((v,i)=>'<td>'+(i===row.length-1?status(v):v)+'</td>').join('')+'</tr>').join('')+
+ '</tbody></table></div>';
+}
+function stockList(){
+ const sample=[[goods[0],12],[goods[2],8],[goods[4],15]];
+ return '<div class="stock-list">'+sample.map(pair=>{
+ const item=pair[0];const st=stores[item[1]];
+ return '<div class="stock-row">'+img(photo[st[5]],item[2])+'<div><b>'+item[2]+'</b><small>⚠ 재고 '+pair[1]+'개 남음</small><small>시연 데이터</small></div>'+nav('/product/'+item[0],'›','stock-next')+'</div>';
+ }).join('')+'</div>';
+}
+function partnerProducts(){
+ return '<div class="partner-item-grid">'+goods.filter(x=>x[1]===0||x[1]===2||x[1]===4).slice(0,3).map(g=>{
+  const st=stores[g[1]];
+  return '<div class="partner-item">'+img(photo[st[5]],g[2])+'<b>'+g[2]+'</b><strong>'+won(g[3])+'</strong><small>데모 상품 · 수정 기능 준비 중</small>'+nav('/product/'+g[0],'상품 보기 →','partner-item-link')+'</div>';
+ }).join('')+'</div>';
+}
+function dashPanel(title,contents,label,cls=''){
+ return '<section class="panel '+cls+'"><div class="ops-panel-title"><h2>'+title+'</h2><span>'+label+'</span></div>'+contents+'</section>';
+}
+function dashboard(admin){
+ const navs=admin?['대시보드','입점·가게','상품','주문·정산','콘텐츠']:['홈','상품','주문/배송','정산','내 가게','문의/도움말'];
+ const metrics=admin?[
+  ['입점 가게','6곳','▣'],['승인 대기','3건','◉'],['등록 상품','6개','⬡'],
+  ['오늘 주문','3건','🛒'],['이번 달 거래액','47,000원','₩'],['예상 수수료 (1%)','470원','％']
  ]:[
- ['오늘 처리할 일',tasks([['주문 확인','2건'],['송장번호 입력','3건'],['재고 부족 확인','1건'],['고객 문의 답변','1건']])],
- ['내 가게 정보',kv([['가게','통영 꿀빵 작업실'],['지역','경남 통영시'],['인터뷰','미등록']])],
- ['주문·배송',table()],
- ['정산 요약','<p>시연 예정 정산금 <b>356,000원</b></p><p>중개수수료 1% · PG 별도</p>'],
- ['상품 관리',kv(goods.slice(0,2).map(g=>[g[2],won(g[3])]))],
- ['인터뷰 콘텐츠','<div class="quiet">▶ 영상 제작 준비 중</div>']
- ];return note+'<div class="dashboard"><aside class="sidebar"><h3>'+(admin?'운영 관리자':'사장님 센터')+'</h3>'+navs.map((x,i)=>'<a href="#panel-'+i+'">'+x+'</a>').join('')+'<small>데모 · 실거래 정보 없음</small></aside><div class="dashmain"><div class="dashtop"><div><small>'+(admin?'PLATFORM':'PARTNER')+' · DEMO</small><h1>'+(admin?'운영 대시보드':'통영 꿀빵 작업실 운영 현황')+'</h1><p>업무를 한눈에 살펴보는 예시 화면</p></div>'+nav('/','사이트 보기 →','outline')+'</div><div class="metrics">'+metrics.map(x=>'<div><small>◉ '+x[0]+'</small><b>'+x[1]+'</b><small>시연 자료</small></div>').join('')+'</div><div class="dashcards">'+panels.map((x,i)=>'<section class="panel" id="panel-'+i+'"><h2>'+x[0]+'</h2>'+x[1]+'</section>').join('')+'</div></div></div>'}
+  ['신규 주문','5건','▣'],['배송 대기','3건','🚚'],
+  ['이번 달 매출','418,000원','◉'],['정산 예정액','356,000원','₩']
+ ];
+ let panels='';
+ if(admin){
+  panels+=dashPanel('☑ 오늘 처리할 일',taskPanel([
+   ['입점 승인','3건','신규 신청 검토 대기'],
+   ['배송 지연 문의','2건','점주 확인 필요'],
+   ['상품 수정 요청','4건','변경사항 검토 필요'],
+   ['정산 검토','1건','입금 전 확인']
+  ]),'검토 현황 · 예시','panel-tasks');
+  panels+=dashPanel('⌛ 승인 대기 가게',
+    demoTable([
+      ['통영 꿀빵 작업실','경남 통영','꿀빵','검토 대기'],
+      ['전주 장아찌 가게','전북 전주','장아찌','검토 대기'],
+      ['강릉 한과 가게','강원 강릉','한과','검토 대기']
+    ],['가게명','지역','주요 상품','상태']),'3건 · 예시','panel-approval');
+  panels+=dashPanel('🛒 최근 주문',demoTable([
+   ['DEMO-001','통영 꿀빵 작업실','13,000원','결제완료'],
+   ['DEMO-002','전주 장아찌 가게','16,000원','상품준비'],
+   ['DEMO-003','강릉 한과 가게','18,000원','배송중']
+  ],['주문번호','가게','주문금액','상태']),'전체 주문','panel-orders');
+  panels+=dashPanel('▣ 배송 지연 / 문의',demoTable([
+   ['DEMO-001','배송일이 궁금해요','답변 대기'],
+   ['DEMO-002','구성 확인 요청','답변 대기'],
+   ['DEMO-003','상품 상태 문의','접수']
+  ],['주문번호','문의 내용','상태']),'3건 · 예시','panel-inquiries');
+  panels+=dashPanel('▶ 콘텐츠 현황',
+   '<div class="content-progress">'+[
+     ['인터뷰 영상','0편',0],['맛집기록','3건',60],['촬영 준비','6곳',70]
+   ].map(v=>'<div><span>'+v[0]+'</span><strong>'+v[1]+'</strong><div class="progress-track"><i style="width:'+v[2]+'%"></i></div></div>').join('')+'</div>',
+   '플랫폼 제작','panel-content');
+  panels+=dashPanel('⌖ 지역별 입점 분포',
+   '<div class="dash-regions">'+regions.map(r=>'<div><span>'+r[1]+'</span><b>1곳</b></div>').join('')+'</div>'+
+   '<small class="dashboard-note">등록된 6개 시연 가게 기준</small>','6지역','panel-regions');
+  panels+=dashPanel('₩ 수수료 / 정산 요약',
+   '<div class="accounting-amount"><small>시연 거래액</small><strong>47,000원</strong></div>'+
+   kv([['판매 중개수수료 1%','470원'],['PG 수수료','별도'],['배송·포장 비용','점주별 상이']])+
+   '<small class="dashboard-note">실제 정산금이 아닙니다.</small>',
+   '이번 달 · 예시','panel-settlement');
+ } else {
+  panels+=dashPanel('☑ 오늘 처리할 일',taskPanel([
+   ['송장번호 입력하기','3건','배송 준비 중'],
+   ['주문 확인하기','2건','신규 주문 접수'],
+   ['재고 부족 상품 확인하기','1건','재고 경고'],
+   ['고객 문의 답변하기','1건','확인 대기']
+  ]),'총 7건 · 예시','panel-tasks');
+  panels+=dashPanel('내 가게 정보',kv([
+   ['가게명','통영 꿀빵 작업실'],['지역','경남 통영시'],
+   ['상품','꿀빵 · 간식'],['배송 가능 지역','전국 택배 (시연)'],
+   ['인터뷰 콘텐츠','촬영 준비 중']
+  ]),'가게 정보 보기','panel-shop');
+  panels+=dashPanel('🚚 주문/배송 현황',demoTable([
+   ['DEMO-001','꿀빵 10개입','13,000원','결제완료'],
+   ['DEMO-002','꿀빵 선물세트','26,000원','상품준비'],
+   ['DEMO-003','꿀빵 10개입','13,000원','배송중'],
+   ['DEMO-004','꿀빵 세트','28,000원','배송완료']
+  ],['주문번호','상품','금액','상태']),'전체 주문 보기','panel-orders');
+  panels+=dashPanel('⚠ 품절 임박 상품',stockList(),'재고 확인','panel-stock');
+  panels+=dashPanel('▣ 대표 상품 관리',partnerProducts(),'상품 보기','panel-products');
+  panels+=dashPanel('₩ 정산 예정 내역',
+   '<div class="settlement-well"><small>다음 정산 예정 금액 (시연)</small><b>356,000원</b></div>'+
+   kv([['플랫폼 판매 중개수수료','1%'],['PG·배송 관련 비용','별도 정산']])+
+   '<small class="dashboard-note">확정 정산이 아닌 예시 화면</small>',
+   '정산 내역 보기','panel-settlement');
+  panels+=dashPanel('▶ 인터뷰 콘텐츠',
+   '<div class="interview-box">'+img(photo.a,'가게 인터뷰 예시 이미지')+
+   '<div><b>통영의 달콤한 이야기를 담을 예정입니다.</b><p>영상 촬영과 편집·게시 관리는 작은가게 운영팀이 담당합니다.</p>'+status('촬영 준비 중')+'</div></div>',
+   '촬영 상태 보기','panel-interview');
+  panels+=dashPanel('💡 작은가게 사장님 팁',
+   '<div class="tip-box">상품 설명과 대표 사진이 구매자의 이해를 돕습니다.<br><small>사진·인터뷰 콘텐츠 수정이 필요하면 운영팀에 요청할 수 있습니다.</small></div>',
+   '운영 가이드','panel-tip');
+ }
+ return note+
+  '<div class="dashboard '+(admin?'dashboard-admin':'dashboard-partner')+'">'+
+   '<aside class="sidebar">'+
+    '<h3>'+(admin?'작은가게 관리자':'작은가게 파트너센터')+'</h3>'+
+     navs.map((x,i)=>'<a href="#'+(admin?'admin':'partner')+'-'+i+'"><span class="sidebar-symbol">'+['⌂','⬡','♧','₩','▣','?'][i]+'</span>'+x+'</a>').join('')+
+    '<div class="sidebar-illustration" aria-hidden="true"><div>⌁ ⛵ ⌁</div><small>지역의 맛을 전국으로</small></div>'+
+   '</aside><div class="dashmain">'+
+    '<div class="dashtop"><div><small>'+(admin?'작은가게 운영팀':'통영 꿀빵 작업실 · 사장님 데모')+'</small>'+
+    '<h1>'+(admin?'관리자님, 좋은 하루입니다.':'사장님, 오늘도 좋은 하루 되세요!')+'</h1>'+
+    '<p>'+(admin?'오늘 처리할 업무를 확인하고 작은가게를 운영해 보세요.':'지역의 좋은 먹거리를 소개해 주셔서 감사합니다.')+'</p></div>'+
+    nav('/','작은가게 바로가기 →','outline')+'</div>'+
+    statBoxes(metrics)+'<div class="dashcards">'+panels+'</div>'+
+   '</div></div>';
+}
 function notfound(){return '<div class="panel empty"><h1>페이지가 없습니다.</h1>'+nav('/','홈으로 돌아가기 →','red')+'</div>'}
 function route(){let path=decodeURI(location.pathname);if(BASE&&path.startsWith(BASE))path=path.slice(BASE.length);const seg=path.split('/').filter(Boolean);switch(seg[0]){
  case undefined:return ['전국의 작은 먹거리를 찾아서',home()];
@@ -145,7 +254,7 @@ function route(){let path=decodeURI(location.pathname);if(BASE&&path.startsWith(
  case 'partner':return ['사장님 데모',dashboard(false)];
  default:return ['페이지를 찾을 수 없음',notfound()]
  }}
-function render(scroll){const r=route();document.title=r[0]+' | 작은가게';const path=location.pathname.replace(BASE,'');document.body.classList.toggle('dashboard-mode',path.startsWith('/admin')||path.startsWith('/partner'));document.getElementById('app').innerHTML=header()+'<main class="wrap main">'+r[1]+'</main>'+footer();if(scroll)window.scrollTo(0,0)}
+function render(scroll){const r=route();document.title=r[0]+' | 작은가게';const path=location.pathname.replace(BASE,'');document.body.classList.toggle('dashboard-mode',path.startsWith('/admin')||path.startsWith('/partner'));document.body.classList.toggle('dashboard-partner-view',path.startsWith('/partner'));document.getElementById('app').innerHTML=header()+'<main class="wrap main">'+r[1]+'</main>'+footer();if(scroll)window.scrollTo(0,0)}
 function goto(url){history.pushState(null,'',link(url));selectedQty=1;render(true)}
 document.addEventListener('click',e=>{
  const l=e.target.closest('a[data-route]');if(l&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey){e.preventDefault();const u=new URL(l.href);let pathname=u.pathname;if(BASE&&pathname.startsWith(BASE))pathname=pathname.slice(BASE.length);goto(pathname+u.search);return}
