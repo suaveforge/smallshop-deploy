@@ -18,6 +18,10 @@ jobs:
       - name: Validate public storefront JavaScript and route files
         run: |
           node --check assets/site.js
+          node --check assets/map.js
+          test -s assets/map.css
+          grep -q 'data-smallshop-map' assets/site.js
+          grep -q 'OpenStreetMap' assets/map.js
           test -s index.html
           test -s 404.html
           test -s assets/site.css

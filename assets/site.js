@@ -110,26 +110,40 @@ function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div c
 function storeTile(s){return nav('/store/'+s[0],img(photo[s[5]],s[1])+'<div class="storetext"><small>'+s[2]+' · '+s[4]+'</small><h3>'+s[1]+'</h3><p>지역 먹거리와 점주 인터뷰를 소개하는 예시입니다.</p><strong>가게 이야기 보기 →</strong></div>','storetile')}
 function regionChips(){return '<div class="chips">'+regions.map(r=>nav('/region/'+r[0],'⌖ '+r[1])).join('')+'</div>'}
 function recordTile(r){return '<div class="record">'+img(r[3],r[0])+'<div><small>'+r[1]+'</small><h3>'+r[0]+'</h3><p>방문 당시 메뉴·가격 기록 예시입니다.</p><b>'+won(r[2])+'</b></div></div>'}
-function regionArtwork(){
- return '<div class="map-art" aria-label="지역별 안내용 한국 지도 일러스트">'+
- '<svg viewBox="0 0 420 340" aria-hidden="true" preserveAspectRatio="xMidYMid meet">'+
- '<defs><linearGradient id="land" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#d8e5c5"/><stop offset=".65" stop-color="#b4d4b1"/><stop offset="1" stop-color="#e5ddb8"/></linearGradient><pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="2" fill="#d0dfc9"/></pattern></defs>'+
- '<rect width="420" height="340" fill="#e6f2f2"/><g opacity=".55" fill="none" stroke="#99c7d5" stroke-width="2"><path d="M21 78q8-6 16 0t16 0M327 46q8-6 16 0t16 0M345 240q7-6 14 0t14 0M29 287q8-5 16 0t16 0"/></g>'+
- '<path d="M196 10l42 18 19 28-5 31 25 29-8 31 27 35-12 31 13 18-33 30-12 30-19-5-13 27-38 8-26-20-19-10-9-29-15-15 5-31-15-23 21-39-7-26 20-33-4-32 33-26z" fill="url(#land)" stroke="#a5c39d" stroke-width="3"/>'+
- '<path d="M165 26l36 44-20 46 30 38-27 38 16 29-29 49M241 55l-12 72 27 38-17 55 24 30M145 142l118 8M137 225l133-9" stroke="#f8f5e8" stroke-width="2.5" opacity=".85" fill="none"/>'+
- '<g fill="#8eb78d" opacity=".8"><circle cx="174" cy="67" r="11"/><circle cx="219" cy="103" r="10"/><circle cx="157" cy="180" r="10"/><circle cx="239" cy="247" r="12"/><circle cx="182" cy="251" r="9"/></g>'+
- '<g fill="#63956d"><path d="M170 65v-17m-10 10 10-10 10 10M216 102V84m-8 10 8-10 8 10M153 180v-15m-8 8 8-8 8 8M234 249v-18m-9 10 9-10 9 10" stroke="#63956d" stroke-width="4" stroke-linecap="round"/></g>'+
- '<g fill="#cde0c4" stroke="#fff" stroke-width="2"><ellipse cx="170" cy="305" rx="21" ry="13"/><ellipse cx="209" cy="319" rx="10" ry="5"/></g>'+
- '<g fill="#7eafaf" opacity=".7"><path d="M56 299q6-5 12 0t12 0M330 293q6-5 12 0t12 0" fill="none" stroke="#7eafaf" stroke-width="2"/></g></svg>'+
- '<div class="map-pins">'+
- nav('/region/tongyeong',icon('mapPin')+' 경남 42','map-pin mp-gyeongnam')+
- nav('/region/jeonju',icon('mapPin')+' 전북 18','map-pin mp-jeonbuk')+
- nav('/region/gangneung',icon('mapPin')+' 강원 28','map-pin mp-gangwon')+
- nav('/region/gongju',icon('mapPin')+' 충남 56','map-pin mp-chungnam')+
- nav('/region/jeju',icon('mapPin')+' 제주 8','map-pin mp-jeju')+
- nav('/region/busan',icon('mapPin')+' 부산 14','map-pin mp-busan')+
- '</div><span class="map-warning">숫자는 디자인 시연용입니다</span></div>';
+
+/* This map uses example city centers, never invented individual store addresses. */
+window.smallshopMapStores=stores.map(s=>{
+ const first=goods.find(g=>stores[g[1]][0]===s[0]);
+ return {id:s[0],name:s[1],region:s[2],city:s[3],category:s[4],
+   photo:photo[s[5]],productId:first?first[0]:null,
+   productName:first?first[2]:null,productPrice:first?first[3]:null};
+});
+function storeMapPanel(scope='all',size='wide'){
+ const regional=scope==='all'?stores:stores.filter(s=>s[3]===scope);
+ const title=size==='compact'?'지역으로 찾기':scope==='all'?'지도에서 작은가게 찾기':'이 지역의 작은가게';
+ const descriptions=size==='compact'?'지도를 움직이고 가게 핀을 선택해 보세요.':'지도를 확대하면 개별 가게를 선택할 수 있습니다.';
+ const list=regional.map(s=>'<article class="map-list-item">'+
+   img(photo[s[5]],s[1])+'<div class="map-list-summary"><small>'+esc(s[2])+' · '+esc(s[4])+'</small>'+
+   '<strong>'+esc(s[1])+'</strong><span>매장 주소 미확인 · 지역 중심 표시</span>'+
+   '<div class="map-list-actions"><button type="button" data-map-focus="'+esc(s[0])+'">'+icon('mapPin')+' 지도에서 보기</button>'+
+   nav('/store/'+s[0],'가게 이야기 →')+'</div></div></article>').join('');
+ return '<div class="store-map-shell map-size-'+size+'" data-smallshop-map="'+esc(scope)+'">'+
+ '<div class="store-map-heading"><div><h2>'+icon('mapPin')+' '+title+'</h2><p>'+descriptions+'</p></div>'+
+ '<div class="store-map-buttons" role="group" aria-label="가게 탐색 방식">'+
+ '<button type="button" data-map-view="map" aria-pressed="true">'+icon('map')+' <span>지도</span></button>'+
+ '<button type="button" data-map-view="list" aria-pressed="false">'+icon('menu')+' <span>목록</span></button></div></div>'+
+ '<div class="store-map-view"><div class="store-map-canvas" role="region" tabindex="0" aria-label="가게 위치를 지역 중심으로 표시한 확대 가능한 지도">'+
+ '<div class="map-loading">'+icon('map')+' 지도를 불러오는 중입니다…</div></div>'+
+ '<div class="map-selected-card" aria-live="polite" hidden></div>'+
+ '</div><div class="store-map-list" hidden>'+list+'</div>'+
+ '<div class="store-map-bottom"><small>'+regional.length+'개 시연 가게 · 핀은 <strong>지역 중심</strong> 표시이며 실제 매장 위치가 아닙니다.</small>'+
+ (size==='compact'?nav('/regions','전국 지도 크게 보기 →','store-map-all-link'):
+ '<button type="button" data-map-reset>'+icon('map')+' 전국 보기</button>')+'</div></div>';
 }
+function regionArtwork(){
+ return storeMapPanel('all','compact');
+}
+
 function home(){
  const searchTerm=new URLSearchParams(location.search).get('q')||'';
  const filtered=goods.filter(g=>[g[2],g[4],stores[g[1]][1],stores[g[1]][2]].join(' ').includes(searchTerm));
@@ -142,7 +156,7 @@ function home(){
  '<div class="cinema-aside"><div class="cinema-quote">“ 좋은 재료, 정성스러운 손맛.<br>지역의 이야기가 담긴 먹거리 ”</div>'+
  '<p>현장 인터뷰는 촬영·동의 후 공개됩니다.</p><div class="cinema-play">'+icon('play')+' 인터뷰 준비 중</div></div>'+
  '<div class="cinema-pager">● &nbsp; ○ &nbsp; ○ &nbsp; ○</div></section>'+
- '<div class="discovery"><section class="geo-panel"><div class="geo-copy"><h2>'+icon('mapPin')+' 지역으로 찾기</h2><p>지도를 선택하면 해당 지역의<br>작은가게를 만날 수 있어요.</p>'+nav('/regions','전체 지역 보기 →','geo-button')+'</div>'+regionArtwork()+'</section>'+
+ '<div class="discovery"><section class="geo-panel">'+regionArtwork()+'</section>'+
  '<section class="story-panel"><div class="story-head"><span>이달의 작은가게</span><small>01 / 03 &nbsp; ›</small></div>'+
  '<div class="story-content"><div class="story-gallery"><div class="story-main-image">'+img(photo.g,'통영 꿀빵 이미지')+'</div><div class="story-thumb-strip">'+img(photo.g,'꿀빵')+img(photo.e,'전통 과자')+img(photo.d,'바닷가 가게')+'</div></div>'+
  '<div class="story-description"><small>바다의 달콤함을 담은</small><h2>통영 꿀빵 작업실</h2><p>'+icon('mapPin')+' 경남 통영시</p><p>지역의 이야기를 담아 정성으로 만드는 먹거리를 소개합니다.<br>현장 인터뷰는 준비 중입니다.</p>'+
@@ -153,8 +167,28 @@ function home(){
  '<div class="products">'+filtered.map((g,i)=>'<div class="merch-tile">'+productTile(g)+'<div class="merch-label">'+(i%3===0?'BEST':i%3===1?'인기':'추천')+'</div><div class="shipping-label">전국배송</div></div>').join('')+'</div></section>'+
  '<section class="section local-records">'+heading(icon('utensils')+' 그 동네에서 먹고 왔어요','/records','맛집기록 더보기')+'<p class="shelf-intro">작은가게가 직접 다녀온 지역의 맛집을 소개합니다.</p><div class="records">'+records.map(recordTile).join('')+'</div></section>';
 }
-function regionsPage(){return note+intro('지역으로 찾기','전국의 작은가게','전국 시·군·구별 가게를 찾는 화면입니다. 현재 예시 데이터입니다.')+'<div class="regions">'+regions.map(r=>nav('/region/'+r[0],'<div class="pin">'+icon('mapPin')+'</div><small>'+r[2]+'</small><h2>'+r[1]+'</h2><p>예시 가게 1곳</p><span>→</span>','region')).join('')+'</div>'}
-function oneRegion(id){const r=regions.find(r=>r[0]===id);if(!r)return notfound();const st=stores.filter(s=>s[3]===id);return note+'<div class="crumb">'+nav('/regions','전국지도')+' / '+r[1]+'</div>'+intro(r[2]+' · 지역별 검색',r[1]+'의 작은가게','해당 지역 가게 및 상품을 확인하세요.')+heading('가게')+'<div class="stores">'+st.map(storeTile).join('')+'</div><section class="section">'+heading('상품')+'<div class="products">'+goods.filter(g=>st.some(s=>s[0]===stores[g[1]][0])).map(productTile).join('')+'</div></section>'}
+function regionsPage(){
+ return note+intro('전국지도 · 지도 기반 탐색','지도에서 작은가게를 찾아보세요','예시 가게 6곳을 지역 중심 좌표로 표시합니다. 지도를 확대하거나 목록에서 가게를 선택하세요.')+
+ '<section class="national-map">'+storeMapPanel('all','full')+'</section>'+
+ '<section class="section region-browse">'+heading('지역별 가게 찾기')+
+ '<div class="regions">'+regions.map(r=>nav('/region/'+r[0],
+ '<div class="pin">'+icon('mapPin')+'</div><small>'+r[2]+'</small><h2>'+r[1]+'</h2><p>'+
+ stores.filter(s=>s[3]===r[0]).length+'개 시연 가게</p><span>지역 보기 →</span>','region')).join('')+'</div></section>';
+}
+
+function oneRegion(id){
+ const r=regions.find(r=>r[0]===id);
+ if(!r)return notfound();
+ const selectedStores=stores.filter(s=>s[3]===id);
+ return note+'<div class="crumb">'+nav('/regions','전국지도')+' / '+r[1]+'</div>'+
+ intro(r[2]+' · 지역별 검색',r[1]+'의 작은가게','지역 중심 지도와 가게·상품 예시를 함께 확인하세요.')+
+ '<section class="local-map">'+storeMapPanel(id,'regional')+'</section>'+
+ '<section class="section">'+heading('이 지역의 가게')+'<div class="stores">'+selectedStores.map(storeTile).join('')+'</div></section>'+
+ '<section class="section">'+heading('대표 상품')+'<div class="products">'+
+ goods.filter(g=>selectedStores.some(s=>s[0]===stores[g[1]][0])).map(productTile).join('')+
+ '</div></section>';
+}
+
 function storesPage(){return note+intro('지역 먹거리 가게','작은가게 파트너','실제 입점 및 인터뷰가 진행되면 검증된 가게 정보를 게시합니다.')+'<div class="stores">'+stores.map(storeTile).join('')+'</div>'}
 function oneStore(id){const st=stores.find(s=>s[0]===id);if(!st)return notfound();return note+'<div class="crumb">'+nav('/stores','작은가게')+' / '+st[2]+' / '+st[1]+'</div><div class="storehero"><div class="storephoto">'+img(photo[st[5]],st[1])+'<div>'+st[2]+' · '+st[4]+'<h1>'+st[1]+'</h1></div></div><div class="story"><small>작은가게 인터뷰</small><h1>가게 이야기를<br>만나보세요</h1><p>실제 점주 인터뷰 및 유튜브 영상은 추후 공개됩니다.</p>'+status(icon('play')+' 인터뷰 준비 중')+'</div></div><section class="section">'+heading('가게 소개')+'<div class="panel"><p>'+st[1]+' · '+st[2]+' · '+st[4]+'</p><p>배송·매장 정보는 실제 입점 검증 후 안내합니다.</p></div></section><section class="section">'+heading('이 가게의 대표 상품')+'<div class="products">'+goods.filter(g=>stores[g[1]][0]===id).map(productTile).join('')+'</div></section><section class="section">'+heading('사장님 이야기')+'<div class="quiet">'+icon('video')+' 현장 인터뷰 영상 준비 중</div></section>'}
 function oneProduct(id){const g=goods.find(x=>x[0]===id);if(!g)return notfound();const st=stores[g[1]];return note+'<div class="crumb">'+nav('/','홈')+' / '+nav('/store/'+st[0],st[1])+' / '+g[2]+'</div><div class="detail"><div><div class="detailimg">'+img(photo[st[5]],g[2])+'</div><small>상품 사진은 시연용 이미지입니다.</small></div><div class="buy"><small>'+st[2]+' · 데모 상품</small><h1>'+g[2]+'</h1><p>'+nav('/store/'+st[0],icon('store')+' '+st[1]+' →','green')+'</p><p>가격과 배송 정보는 실제 입점 후 확정됩니다.</p><b class="price">'+won(g[3])+'</b><div class="delivery"><span>'+icon('truck')+' 배송비 · 확인 전</span><span>'+icon('package')+' 원재료·보관법 · 확인 전</span><span>'+icon('info')+' 실제 결제 · 미연결</span></div><div class="qrow"><b>수량</b><div class="quantity"><button data-qty="-1">−</button><span id="qty">'+selectedQty+'</span><button data-qty="1">+</button></div><b id="amount">'+won(g[3]*selectedQty)+'</b></div><button class="primary" data-add="'+id+'">'+icon('shoppingBag')+' 장바구니 담기</button><div id="addnotice"></div><p><small>실제 결제·주문은 제공하지 않습니다.</small></p></div></div><div class="tabs"><a href="#detail">상품 소개</a><a href="#seller">가게 이야기</a><a href="#delivery">배송 안내</a></div><section class="section" id="detail">'+heading('상품 소개')+'<div class="article"><div><h3>'+g[2]+'</h3><p>시연용 예시 상품입니다. 판매자 확인을 거친 원재료·알레르기·유통기한·보관방법 등을 등록할 예정입니다.</p></div>'+img(photo[st[5]],g[2])+'</div></section><section class="section" id="seller">'+heading('점주 인터뷰')+'<div class="quiet">'+icon('video')+' 촬영 동의 후 공개됩니다.</div></section><section class="section" id="delivery">'+heading('배송·교환·환불')+'<p class="muted">실제 판매자별 상세 기준은 입점 후 등록합니다.</p></section>'}
@@ -305,7 +339,7 @@ function route(){let path=decodeURI(location.pathname);if(BASE&&path.startsWith(
  case 'partner':return ['사장님 데모',dashboard(false)];
  default:return ['페이지를 찾을 수 없음',notfound()]
  }}
-function render(scroll){const r=route();document.title=r[0]+' | 작은가게';const path=location.pathname.replace(BASE,'');document.body.classList.toggle('dashboard-mode',path.startsWith('/admin')||path.startsWith('/partner'));document.body.classList.toggle('dashboard-partner-view',path.startsWith('/partner'));document.getElementById('app').innerHTML=header()+'<main class="wrap main">'+r[1]+'</main>'+footer();if(scroll)window.scrollTo(0,0)}
+function render(scroll){if(window.SmallshopMap)window.SmallshopMap.cleanup();const r=route();document.title=r[0]+' | 작은가게';const path=location.pathname.replace(BASE,'');document.body.classList.toggle('dashboard-mode',path.startsWith('/admin')||path.startsWith('/partner'));document.body.classList.toggle('dashboard-partner-view',path.startsWith('/partner'));document.getElementById('app').innerHTML=header()+'<main class="wrap main">'+r[1]+'</main>'+footer();window.dispatchEvent(new Event('smallshop:rendered'));if(scroll)window.scrollTo(0,0)}
 function goto(url){history.pushState(null,'',link(url));selectedQty=1;render(true)}
 document.addEventListener('click',e=>{
  const l=e.target.closest('a[data-route]');if(l&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey){e.preventDefault();const u=new URL(l.href);let pathname=u.pathname;if(BASE&&pathname.startsWith(BASE))pathname=pathname.slice(BASE.length);goto(pathname+u.search);return}
@@ -317,4 +351,8 @@ document.addEventListener('click',e=>{
 document.addEventListener('submit',e=>{if(e.target.id==='search'){e.preventDefault();const v=e.target.querySelector('input').value.trim();history.pushState(null,'',link('/'+(v?'?q='+encodeURIComponent(v):'')));render(true)}});
 window.addEventListener('popstate',()=>render(false));
 render(false);
+const mapModule=document.createElement('script');
+mapModule.src=BASE+'/assets/map.js';
+mapModule.async=true;
+document.body.appendChild(mapModule);
 })();
