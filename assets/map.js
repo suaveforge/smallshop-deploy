@@ -1,231 +1,302 @@
 (() => {
-  'use strict';
-  /* Leaflet 1.9.4, OpenStreetMap tiles. Demo markers are city centers only. */
-  const cityCenters=Object.freeze({
-    tongyeong:[34.8552,128.4296],
-    jeonju:[35.8242,127.1480],
-    gangneung:[37.7519,128.8761],
-    busan:[35.1796,129.0756],
-    gongju:[36.4500,127.1167],
-    jeju:[33.4996,126.5312]
+ 'use strict';
+ /* Smallshop demo: these coordinates represent CITY CENTERS, not actual stores.
+    Never enable directions or claim an address until a merchant is verified. */
+ const cityCenters=Object.freeze({
+  tongyeong:[34.8552,128.4296],jeonju:[35.8242,127.1480],
+  gangneung:[37.7519,128.8761],busan:[35.1796,129.0756],
+  gongju:[36.4500,127.1167],jeju:[33.4996,126.5312]
+ });
+ const allStores=Array.isArray(window.smallshopMapStores)?window.smallshopMapStores:[];
+ const leafletURL='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+ const leafletCSS='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+ const ourCSS=(window.__smallshopBase||'')+'/assets/map.css';
+ const route=path=>(window.__smallshopBase||'')+path;
+ const escapeHTML=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const money=v=>new Intl.NumberFormat('ko-KR').format(v)+'원';
+ const locationOf=s=>cityCenters[s.city];
+ let instances=[];
+ let generation=0;
+ let leafletPromise,stylesPromise;
+ function loadStyles(){
+  if(stylesPromise)return stylesPromise;
+  stylesPromise=new Promise((resolve,reject)=>{
+   const e=document.createElement('link');e.rel='stylesheet';e.href=ourCSS;
+   e.onload=resolve;e.onerror=()=>reject(Error('지도의 스타일 파일을 불러올 수 없습니다.'));
+   document.head.appendChild(e);
+  });return stylesPromise;
+ }
+ function loadLeaflet(){
+  if(window.L)return Promise.resolve(window.L);
+  if(leafletPromise)return leafletPromise;
+  leafletPromise=new Promise((resolve,reject)=>{
+   const style=document.createElement('link');style.rel='stylesheet';style.href=leafletCSS;
+   style.integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+   style.crossOrigin='anonymous';document.head.appendChild(style);
+   const code=document.createElement('script');code.src=leafletURL;code.async=true;
+   code.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+   code.crossOrigin='anonymous';
+   code.onload=()=>window.L?resolve(window.L):reject(Error('지도 라이브러리를 시작할 수 없습니다.'));
+   code.onerror=()=>reject(Error('지도 라이브러리 다운로드 실패'));
+   document.head.appendChild(code);
+  });return leafletPromise;
+ }
+ function scopedStores(root){
+  const scope=root.dataset.smallshopMap;
+  return allStores.filter(s=>(scope==='all'||s.city===scope)&&!!locationOf(s));
+ }
+ function markerIcon(L,count,group){
+  if(count>1)return L.divIcon({
+   className:'smallshop-cluster-marker',
+   html:'<span class="smallshop-pin-cluster">'+count+'곳</span>',
+   iconSize:[52,52],iconAnchor:[26,26]
   });
-  const allStores=Array.isArray(window.smallshopMapStores)?window.smallshopMapStores:[];
-  let instances=[];
-  let generation=0;
-  let libraryPromise=null;
-  let stylePromise=null;
-  const leafletJS='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-  const leafletCSS='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-  const mapCSS=(window.__smallshopBase||'')+'/assets/map.css';
-  const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const route=path=>(window.__smallshopBase||'')+path;
-  function loadStyles(){
-    if(stylePromise)return stylePromise;
-    stylePromise=new Promise((resolve,reject)=>{
-      const css=document.createElement('link');
-      css.rel='stylesheet';css.href=mapCSS;
-      css.onload=resolve;css.onerror=()=>reject(Error('지도 스타일을 읽지 못했습니다.'));
-      document.head.appendChild(css);
-    });
-    return stylePromise;
-  }
-  function loadLeaflet(){
-    if(window.L)return Promise.resolve(window.L);
-    if(libraryPromise)return libraryPromise;
-    libraryPromise=new Promise((resolve,reject)=>{
-      const stylesheet=document.createElement('link');
-      stylesheet.rel='stylesheet';stylesheet.href=leafletCSS;
-      stylesheet.integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-      stylesheet.crossOrigin='anonymous';document.head.appendChild(stylesheet);
-      const script=document.createElement('script');
-      script.src=leafletJS;script.async=true;
-      script.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-      script.crossOrigin='anonymous';
-      script.onload=()=>window.L?resolve(window.L):reject(Error('지도 라이브러리가 초기화되지 않았습니다.'));
-      script.onerror=()=>reject(Error('지도 라이브러리를 다운로드하지 못했습니다.'));
-      document.head.appendChild(script);
-    });
-    return libraryPromise;
-  }
-  function filterStores(root){
-    const scope=root.dataset.smallshopMap;
-    return allStores.filter(s=>(scope==='all'||s.city===scope)&&cityCenters[s.city]);
-  }
-  function locate(s){return cityCenters[s.city];}
-  function markerIcon(L,count){
-    const cluster=count>1;
-    return L.divIcon({
-      className:cluster?'smallshop-cluster-marker':'smallshop-location-marker',
-      html:cluster?'<span class="smallshop-pin-cluster">'+count+'곳</span>':
-        '<span class="smallshop-pin-single"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>',
-      iconSize:cluster?[52,52]:[38,46],iconAnchor:cluster?[26,26]:[19,42]
-    });
-  }
-  function updateButtons(root,mode){
-    root.dataset.mapMode=mode;
-    const mapView=root.querySelector('.store-map-view');
-    const listView=root.querySelector('.store-map-list');
-    mapView.hidden=mode!=='map';listView.hidden=mode!=='list';
-    for(const b of root.querySelectorAll('[data-map-view]')){
-      const selected=b.dataset.mapView===mode;
-      b.setAttribute('aria-pressed',String(selected));
-    }
-    if(mode==='map'){
-      const active=instances.find(v=>v.root===root);
-      if(active)requestAnimationFrame(()=>active.map.invalidateSize());
-    }
-  }
-  function showCard(state,s){
-    const card=state.root.querySelector('.map-selected-card');
-    if(!card)return;
-    card.innerHTML='<div class="selected-card-photo"><img src="'+safe(s.photo)+'" alt="'+safe(s.name)+'"></div>'+
-      '<div class="selected-card-body"><small>'+safe(s.region)+' · '+safe(s.category)+'</small>'+
-      '<strong>'+safe(s.name)+'</strong><p>지역 중심 좌표 · 실제 매장 위치 아님</p>'+
-      '<div class="selected-card-links"><a data-route href="'+route('/store/'+encodeURIComponent(s.id))+'">가게 이야기 →</a>'+
-      (s.productId?'<a data-route href="'+route('/product/'+encodeURIComponent(s.productId))+'">대표 상품 →</a>':'')+'</div></div>'+
-      '<button class="selected-card-close" type="button" data-map-close aria-label="가게 정보 닫기">×</button>';
-    card.hidden=false;
-  }
-  function selectStore(state,id,{fly=true}={}){
-    const s=state.stores.find(s=>s.id===id);
-    if(!s)return;
-    updateButtons(state.root,'map');
-    showCard(state,s);
-    if(fly && state.map.getZoom()<10)state.map.flyTo(locate(s),10,{duration:0.55});
-    else state.map.panTo(locate(s),{animate:true,duration:0.3});
-  }
-  function groupedStores(map,items){
-    // Zoom-dependent pixel-distance grouping. We do not invent shop counts.
-    if(map.getZoom()>8.5)return items.map(store=>[store]);
-    const groups=[];
-    for(const store of items){
-      const pos=map.latLngToLayerPoint(locate(store));
-      let entry=groups.find(g=>g.points.some(p=>p.distanceTo(pos)<54));
-      if(!entry){entry={points:[],stores:[]};groups.push(entry);}
-      entry.stores.push(store);
-      entry.points.push(pos);
-    }
-    return groups.map(g=>g.stores);
-  }
-  function drawMarkers(state){
-    state.layer.clearLayers();
-    const {map,stores}=state;
-    for(const group of groupedStores(map,stores)){
-      const center=group.reduce((sum,s)=>{
-        const p=locate(s);sum[0]+=p[0];sum[1]+=p[1];return sum;
-      },[0,0]).map(v=>v/group.length);
-      const isCluster=group.length>1;
-      const title=isCluster?'근처 예시 가게 '+group.length+'곳. 확대하여 보기':
-        group[0].name+' · 지역 중심 표시';
-      const marker=window.L.marker(center,{
-        icon:markerIcon(window.L,group.length),
-        title,alt:title,keyboard:true,riseOnHover:true
-      }).addTo(state.layer);
-      marker.on('click',()=>{
-        if(isCluster){
-          map.fitBounds(window.L.latLngBounds(group.map(s=>locate(s))).pad(.55),{padding:[30,30],maxZoom:11,animate:true});
-        }else selectStore(state,group[0].id);
-      });
-      if(!isCluster)marker.bindTooltip(safe(group[0].region),{direction:'top',offset:[0,-38],opacity:.96});
-    }
-  }
-  function initMap(root,L){
-    if(!root.isConnected)return;
-    const el=root.querySelector('.store-map-canvas');
-    const stores=filterStores(root);
-    if(!el||!stores.length)throw Error('표시할 지역 가게 정보가 없습니다.');
-    el.querySelector('.map-loading')?.remove();
-    const map=L.map(el,{
-      zoomControl:false,scrollWheelZoom:false,zoomSnap:.25,preferCanvas:true,
-      minZoom:5,maxZoom:15
-    });
-    const layer=L.layerGroup().addTo(map);
-    const state={root,map,layer,stores};
-    instances.push(state);
-    L.control.zoom({position:'bottomright'}).addTo(map);
-    let successfulTiles=0,failedTiles=0;
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      maxZoom:19,
-      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> 기여자',
-      detectRetina:false,
-      keepBuffer:2
-    }).on('tileload',()=>successfulTiles++).on('tileerror',()=>{
-      failedTiles++;
-      if(failedTiles>=8 && successfulTiles===0){
-        showFallback(root,'지도 타일을 불러오지 못했습니다. 목록에서 가게를 찾아보세요.');
-      }
-    }).addTo(map);
-    const bounds=L.latLngBounds(stores.map(s=>locate(s)));
-    if(stores.length===1)map.setView(locate(stores[0]),11);
-    else map.fitBounds(bounds,{padding:[35,35],maxZoom:8});
-    map.on('zoomend',()=>drawMarkers(state));
-    drawMarkers(state);
-    requestAnimationFrame(()=>{if(root.isConnected)map.invalidateSize();});
-    root.__smallshopMapState=state;
-    return state;
-  }
-  function showFallback(root,message){
-    const heading=root.querySelector('.store-map-heading p');
-    if(heading)heading.textContent=message;
-    updateButtons(root,'list');
-    root.classList.add('map-offline');
-  }
-  function cleanup(){
-    ++generation;
-    for(const state of instances){
-      try{state.map.remove();}catch{}
-      if(state.root)delete state.root.__smallshopMapState;
-    }
-    instances=[];
-  }
-  async function mount(){
-    const roots=[...document.querySelectorAll('[data-smallshop-map]')];
-    if(!roots.length)return;
-    const current=++generation;
-    try{
-      const [_,L]=await Promise.all([loadStyles(),loadLeaflet()]);
-      if(current!==generation)return;
-      for(const root of roots){
-        if(!root.isConnected||root.__smallshopMapState)continue;
-        try{initMap(root,L);}
-        catch(error){console.warn('작은가게 지도 표시 오류:',error);showFallback(root,'지도를 열 수 없어 가게 목록으로 전환했습니다.');}
-      }
-    }catch(error){
-      console.warn('작은가게 지도 로드 오류:',error);
-      if(current===generation)for(const root of roots)if(root.isConnected)showFallback(root,'지도를 불러올 수 없어 목록으로 전환했습니다.');
-    }
-  }
-  document.addEventListener('click',event=>{
-    const button=event.target.closest('[data-map-view],[data-map-reset],[data-map-focus],[data-map-close]');
-    if(!button)return;
-    const root=button.closest('[data-smallshop-map]');
-    if(!root)return;
-    if(button.hasAttribute('data-map-view')){
-      updateButtons(root,button.dataset.mapView);
-      return;
-    }
-    if(button.hasAttribute('data-map-close')){
-      root.querySelector('.map-selected-card').hidden=true;
-      return;
-    }
-    const state=root.__smallshopMapState;
-    if(button.hasAttribute('data-map-reset')){
-      if(!state)return;
-      state.map.closePopup();
-      root.querySelector('.map-selected-card').hidden=true;
-      if(state.stores.length===1)state.map.setView(locate(state.stores[0]),11);
-      else state.map.fitBounds(window.L.latLngBounds(state.stores.map(s=>locate(s))),{padding:[35,35],maxZoom:8});
-      return;
-    }
-    if(button.hasAttribute('data-map-focus')){
-      if(!state){
-        showFallback(root,'지도 준비 전입니다. 아래 목록에서 가게 페이지로 이동할 수 있습니다.');
-        return;
-      }
-      selectStore(state,button.dataset.mapFocus);
-    }
+  const groupStyle=group==='반찬'?'savory':group==='차·음료'?'beverage':'bakery';
+  return L.divIcon({
+   className:'smallshop-location-marker marker-'+groupStyle,
+   html:'<span class="smallshop-pin-single"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10 12 4l9 6v10H3V10Z"/><path d="M9 20v-8h6v8"/></svg></span>',
+   iconSize:[38,46],iconAnchor:[19,42]
   });
-  window.SmallshopMap={mount,cleanup,cityCenters};
-  window.addEventListener('smallshop:rendered',mount);
-  mount();
+ }
+ function filtered(state){
+  return state.scopeStores.filter(s=>state.category==='전체'||s.group===state.category);
+ }
+ function selectedRow(state){
+  for(const item of state.root.querySelectorAll('[data-map-item]')){
+   const selected=item.dataset.mapItem===state.selectedId;
+   item.classList.toggle('is-selected',selected);
+   if(selected)item.setAttribute('aria-current','true');
+   else item.removeAttribute('aria-current');
+  }
+ }
+ function updateList(state){
+  const {root,map}=state;
+  const candidates=filtered(state);
+  const bounds=map.getBounds();
+  // The list reflects the current geographic viewport, not unrelated shops
+  // elsewhere in the country, and also respects the category chips.
+  const inView=candidates.filter(s=>bounds.isValid()&&bounds.contains(locationOf(s)));
+  const visibleIds=new Set(inView.map(s=>s.id));
+  for(const row of root.querySelectorAll('[data-map-item]')){
+   row.hidden=!visibleIds.has(row.dataset.mapItem);
+  }
+  const message=root.querySelector('.map-list-empty');
+  if(message){
+   message.hidden=inView.length!==0;
+   message.textContent=candidates.length===0
+    ?'선택한 업종의 시연 가게가 없습니다. 다른 업종을 선택해 보세요.'
+    :'현재 지도 범위에 가게가 없습니다. 지도를 이동하거나 전국 보기로 돌아가세요.';
+  }
+  const status=root.querySelector('.store-map-count');
+  if(status)status.textContent='지도 영역 '+inView.length+'곳 · 업종 '+candidates.length+'곳 · 가게 위치는 시연용 지역 중심입니다.';
+  selectedRow(state);
+  return inView;
+ }
+ function setMode(root,mode){
+  root.dataset.mapMode=mode;
+  const map=root.querySelector('.store-map-view'),list=root.querySelector('.store-map-list');
+  if(map)map.hidden=mode!=='map';
+  if(list)list.hidden=mode!=='list';
+  for(const button of root.querySelectorAll('[data-map-view]')){
+   button.setAttribute('aria-pressed',String(button.dataset.mapView===mode));
+  }
+  const state=root.__smallshopMapState;
+  if(state){
+   if(mode==='map')requestAnimationFrame(()=>state.map.invalidateSize());
+   else{
+    updateList(state);
+    const row=state.selectedId?root.querySelector('[data-map-item="'+state.selectedId+'"]'):null;
+    if(row&&!row.hidden)list.scrollTop=Math.max(0,row.offsetTop-list.offsetTop-35);
+   }
+  }
+ }
+ function displayCard(state,store){
+  const card=state.root.querySelector('.map-selected-card');
+  if(!card)return;
+  card.innerHTML=
+   '<div class="selected-card-photo"><img src="'+escapeHTML(store.photo)+'" alt="'+escapeHTML(store.name)+'" loading="lazy"><span>시연 가게</span></div>'+
+   '<div class="selected-card-body"><small>'+escapeHTML(store.region)+' · '+escapeHTML(store.category)+'</small>'+
+   '<strong>'+escapeHTML(store.name)+'</strong>'+
+   '<span class="selected-card-story"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="m16 10 6-4v12l-6-4"/></svg>점주 인터뷰 촬영 준비 중</span>'+
+   (store.productName?'<p class="selected-product">'+escapeHTML(store.productName)+' <b>'+money(store.productPrice)+' (예시)</b></p>':'')+
+   '<p class="selected-card-location">매장 주소 미확인 · 도시 중심 표시</p>'+
+   '<div class="selected-card-links"><a data-route href="'+route('/store/'+encodeURIComponent(store.id))+'">가게 이야기 →</a>'+
+   (store.productId?'<a data-route href="'+route('/product/'+encodeURIComponent(store.productId))+'">대표 상품 →</a>':'')+
+   '</div></div>'+
+   '<button class="selected-card-close" type="button" data-map-close aria-label="가게 정보 닫기">×</button>';
+  card.hidden=false;
+ }
+ function clearCard(state){
+  state.selectedId=null;
+  const card=state.root.querySelector('.map-selected-card');
+  if(card)card.hidden=true;
+  selectedRow(state);
+ }
+ function selectStore(state,id,{move=true}={}){
+  const shop=state.scopeStores.find(x=>x.id===id);
+  if(!shop)return;
+  // A shop chosen from the list must always be present in the active filter.
+  if(state.category!=='전체'&&state.category!==shop.group){
+   applyCategory(state,shop.group,false);
+  }
+  state.selectedId=shop.id;
+  displayCard(state,shop);
+  selectedRow(state);
+  setMode(state.root,'map');
+  if(move){
+   state.map.stop();
+   state.map.setView(locationOf(shop),11,{animate:false});
+   drawPins(state);
+   updateList(state);
+  }
+ }
+ function clusters(map,items){
+  if(map.getZoom()>8.5)return items.map(s=>[s]);
+  const entries=[];
+  for(const store of items){
+   const pos=map.latLngToLayerPoint(locationOf(store));
+   let found=entries.find(entry=>entry.positions.some(p=>p.distanceTo(pos)<54));
+   if(!found){found={positions:[],stores:[]};entries.push(found);}
+   found.positions.push(pos);
+   found.stores.push(store);
+  }
+  return entries.map(e=>e.stores);
+ }
+ function drawPins(state){
+  state.layer.clearLayers();
+  for(const group of clusters(state.map,filtered(state))){
+   const coords=group.reduce((sum,shop)=>{
+    const p=locationOf(shop);sum[0]+=p[0];sum[1]+=p[1];return sum;
+   },[0,0]).map(x=>x/group.length);
+   const many=group.length>1;
+   const text=many?'가까운 예시 가게 '+group.length+'곳. 확대해서 보기':
+    group[0].name+' · 도시 중심 (실제 매장 위치 아님)';
+   const marker=window.L.marker(coords,{
+    icon:markerIcon(window.L,group.length,group[0].group),
+    title:text,alt:text,keyboard:true,riseOnHover:true
+   }).addTo(state.layer);
+   marker.on('click',()=>{
+    if(many){
+     state.map.stop();
+     state.map.fitBounds(window.L.latLngBounds(group.map(s=>locationOf(s))).pad(.5),{
+      padding:[34,34],maxZoom:11,animate:true
+     });
+    }else selectStore(state,group[0].id,{move:false});
+   });
+   if(!many)marker.bindTooltip(escapeHTML(group[0].region),{direction:'top',offset:[0,-39],opacity:.96});
+  }
+ }
+ function fitCategory(state,items){
+  state.map.stop();
+  if(items.length===0)return;
+  if(items.length===1)state.map.setView(locationOf(items[0]),11,{animate:false});
+  else state.map.fitBounds(window.L.latLngBounds(items.map(s=>locationOf(s))),{
+   padding:[34,34],maxZoom:8,animate:false
+  });
+ }
+ function applyCategory(state,group,zoom=true){
+  if(group!=='전체'&&!state.scopeStores.some(s=>s.group===group))return;
+  state.category=group;
+  for(const button of state.root.querySelectorAll('[data-map-category]')){
+   button.setAttribute('aria-pressed',String(button.dataset.mapCategory===group));
+  }
+  const selected=state.scopeStores.find(s=>s.id===state.selectedId);
+  if(selected&&group!=='전체'&&selected.group!==group)clearCard(state);
+  const scoped=filtered(state);
+  if(zoom)fitCategory(state,scoped);
+  drawPins(state);
+  updateList(state);
+ }
+ function initMap(root,L){
+  if(!root.isConnected)return;
+  const el=root.querySelector('.store-map-canvas');
+  const scopeStores=scopedStores(root);
+  if(!el||!scopeStores.length)throw Error('지도에 표시할 가게가 없습니다.');
+  el.querySelector('.map-loading')?.remove();
+  const map=L.map(el,{
+   zoomControl:false,scrollWheelZoom:false,zoomSnap:.25,preferCanvas:true,minZoom:5,maxZoom:15
+  });
+  const layer=L.layerGroup().addTo(map);
+  const state={root,map,layer,scopeStores,category:'전체',selectedId:null};
+  root.__smallshopMapState=state;
+  instances.push(state);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  let successes=0,failures=0;
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+   maxZoom:19,
+   attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> 기여자',
+   detectRetina:false,keepBuffer:2
+  }).on('tileload',()=>successes++)
+   .on('tileerror',()=>{
+    failures++;
+    if(failures>=8&&!successes)fallback(root,'지도 이미지 연결이 불안정합니다. 가게 목록으로 확인해 보세요.');
+   }).addTo(map);
+  // Tile positioning and area events are linked to the visible shop list.
+  map.on('moveend',()=>{
+   drawPins(state);
+   updateList(state);
+  });
+  fitCategory(state,scopeStores);
+  drawPins(state);
+  updateList(state);
+  requestAnimationFrame(()=>{if(root.isConnected)map.invalidateSize();});
+  return state;
+ }
+ function fallback(root,reason){
+  const description=root.querySelector('.store-map-heading p');
+  if(description)description.textContent=reason;
+  root.classList.add('map-offline');
+  setMode(root,'list');
+  const state=root.__smallshopMapState;
+  if(state)updateList(state);
+ }
+ function cleanup(){
+  generation++;
+  for(const state of instances){
+   try{state.map.remove();}catch{}
+   if(state.root)delete state.root.__smallshopMapState;
+  }
+  instances=[];
+ }
+ async function mount(){
+  const roots=[...document.querySelectorAll('[data-smallshop-map]')];
+  if(!roots.length)return;
+  const current=++generation;
+  try{
+   const [_,L]=await Promise.all([loadStyles(),loadLeaflet()]);
+   if(current!==generation)return;
+   for(const root of roots){
+    if(!root.isConnected||root.__smallshopMapState)continue;
+    try{initMap(root,L);}
+    catch(error){console.warn('작은가게 지도 오류:',error);fallback(root,'지도를 열 수 없어 가게 목록을 표시합니다.');}
+   }
+  }catch(error){
+   console.warn('작은가게 지도 로드 오류:',error);
+   if(current===generation)for(const root of roots)if(root.isConnected)fallback(root,'지도를 불러올 수 없어 가게 목록을 표시합니다.');
+  }
+ }
+ document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-map-view],[data-map-reset],[data-map-focus],[data-map-close],[data-map-category]');
+  if(!button)return;
+  const root=button.closest('[data-smallshop-map]');
+  if(!root)return;
+  if(button.hasAttribute('data-map-view')){setMode(root,button.dataset.mapView);return;}
+  const state=root.__smallshopMapState;
+  if(button.hasAttribute('data-map-category')){
+   if(!state)return;
+   applyCategory(state,button.dataset.mapCategory);
+   return;
+  }
+  if(button.hasAttribute('data-map-close')){if(state)clearCard(state);return;}
+  if(button.hasAttribute('data-map-focus')){if(state)selectStore(state,button.dataset.mapFocus);return;}
+  if(button.hasAttribute('data-map-reset')){
+   if(!state)return;
+   clearCard(state);
+   applyCategory(state,'전체');
+   return;
+  }
+ });
+ window.SmallshopMap={mount,cleanup,cityCenters};
+ window.addEventListener('smallshop:rendered',mount);
+ mount();
 })();
