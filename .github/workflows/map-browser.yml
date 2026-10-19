@@ -27,6 +27,12 @@ jobs:
           node --version
           google-chrome --version
           node --check tests/geo-smoke.mjs
+      - name: Install Korean CJK fonts for trustworthy screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-cache -f >/dev/null
+          fc-match 'Noto Sans CJK KR' | head -n 1
       - name: Test live map tiles, markers, card and list interaction
         run: node tests/geo-smoke.mjs
       - name: Save map screenshots
