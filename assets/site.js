@@ -9,14 +9,17 @@ const photo={
  c:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=960&q=82',
  d:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=960&q=82',
  e:'https://images.unsplash.com/photo-1608198093002-ad4e005484df?auto=format&fit=crop&w=960&q=82',
- f:'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab12?auto=format&fit=crop&w=960&q=82'
+ f:'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab12?auto=format&fit=crop&w=960&q=82',
+ g:'https://upload.wikimedia.org/wikipedia/commons/3/33/Tongyeong-kkulppang_3.jpg',
+ h:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Korean_hangwa.jpg/960px-Korean_hangwa.jpg',
+ j:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Korean_fishcake_bunsik_eoumuk_01.jpg/500px-Korean_fishcake_bunsik_eoumuk_01.jpg'
 };
 const regions=[['tongyeong','통영시','경남'],['jeonju','전주시','전북'],['gangneung','강릉시','강원'],['busan','부산광역시','부산'],['gongju','공주시','충남'],['jeju','제주시','제주']];
 const stores=[
- ['tongyeong-honey','통영 꿀빵 작업실','경남 통영시','tongyeong','꿀빵','a'],
+ ['tongyeong-honey','통영 꿀빵 작업실','경남 통영시','tongyeong','꿀빵','g'],
  ['jeonju-pickle','전주 장아찌 가게','전북 전주시','jeonju','장아찌','b'],
- ['gangneung-hangwa','강릉 한과 가게','강원 강릉시','gangneung','한과','c'],
- ['busan-eomuk','부산 어묵 가게','부산광역시','busan','어묵','d'],
+ ['gangneung-hangwa','강릉 한과 가게','강원 강릉시','gangneung','한과','h'],
+ ['busan-eomuk','부산 어묵 가게','부산광역시','busan','어묵','j'],
  ['gongju-bread','공주 밤빵 가게','충남 공주시','gongju','빵','e'],
  ['jeju-citrus','제주 감귤 가게','제주 제주시','jeju','감귤청','f']
 ];
@@ -55,7 +58,7 @@ function header(){
  nav('/?q=간식','🍮 디저트')+nav('/?q=반찬','🥗 반찬')+nav('/?q=떡','🍡 떡')+nav('/?q=장아찌','🥬 김치')+nav('/?q=한과','🍪 한과')+
  '</div></nav></header>';
 }
-function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>⌂ 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
+function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>⌂ 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>일부 예시 음식 사진: 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0) · Wikimedia Commons</small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
 function heading(title,path,action){return '<div class="heading"><h2>'+title+'</h2>'+(path?nav(path,(action||'전체 보기')+' →','more'):'')+'</div>'}
 function intro(top,title,description){return '<div class="intro"><small>'+top+'</small><h1>'+title+'</h1><p>'+description+'</p></div>'}
 function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div class="tilepic">'+img(photo[s[5]],g[2])+'<span>'+s[2]+'</span></div><div class="tilebody"><small>'+g[4]+' · 데모 상품</small><h3>'+g[2]+'</h3><div class="tilefoot"><b>'+won(g[3])+'</b><small>상품 보기 ›</small></div></div>','tile')}
@@ -96,7 +99,7 @@ function home(){
  '<div class="cinema-pager">● &nbsp; ○ &nbsp; ○ &nbsp; ○</div></section>'+
  '<div class="discovery"><section class="geo-panel"><div class="geo-copy"><h2>📍 지역으로 찾기</h2><p>지도를 선택하면 해당 지역의<br>작은가게를 만날 수 있어요.</p>'+nav('/regions','전체 지역 보기 →','geo-button')+'</div>'+regionArtwork()+'</section>'+
  '<section class="story-panel"><div class="story-head"><span>이달의 작은가게</span><small>01 / 03 &nbsp; ›</small></div>'+
- '<div class="story-content"><div class="story-gallery"><div class="story-main-image">'+img(photo.a,'통영 꿀빵 이미지')+'</div><div class="story-thumb-strip">'+img(photo.a,'꿀빵')+img(photo.e,'전통 과자')+img(photo.d,'바닷가 가게')+'</div></div>'+
+ '<div class="story-content"><div class="story-gallery"><div class="story-main-image">'+img(photo.g,'통영 꿀빵 이미지')+'</div><div class="story-thumb-strip">'+img(photo.g,'꿀빵')+img(photo.e,'전통 과자')+img(photo.d,'바닷가 가게')+'</div></div>'+
  '<div class="story-description"><small>바다의 달콤함을 담은</small><h2>통영 꿀빵 작업실</h2><p>📍 경남 통영시</p><p>지역의 이야기를 담아 정성으로 만드는 먹거리를 소개합니다.<br>현장 인터뷰는 준비 중입니다.</p>'+
  '<div class="story-actions">'+nav('/store/tongyeong-honey','가게 이야기 →','story-primary')+nav('/product/honeybread-10','상품 보기 →','story-secondary')+'</div>'+
  '<div class="story-quote">“ 좋은 재료와 정성을 한 입에 담고 싶습니다. ”<small>가게 소개 예시 문구</small></div></div></div></section></div>'+
