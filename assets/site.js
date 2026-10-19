@@ -100,7 +100,7 @@ function header(){
  '<div class="header-account">'+nav('/join',icon('store')+' 입점 상담','account-link')+nav('/cart',icon('cart')+' <span class="cartlabel">장바구니</span>'+(count?'<b class="count">'+count+'</b>':''),'cart')+'</div></div>'+
  '<nav class="bar"><div class="wrap links">'+nav('/stores',icon('menu')+' 전체 카테고리','nav-category')+
  nav('/regions',icon('mapPin')+' 전국지도')+nav('/join',icon('store')+' 입점 상담')+nav('/records',icon('book')+' 맛집기록')+
- nav('/?q=간식',icon('cake')+' 디저트')+nav('/?q=반찬',icon('salad')+' 반찬')+nav('/?q=떡',icon('wheat')+' 떡')+nav('/?q=장아찌',icon('leaf')+' 김치')+nav('/?q=한과',icon('cookie')+' 한과')+
+ nav('/?q=간식',icon('cake')+' 간식·빵')+nav('/?q=반찬',icon('salad')+' 반찬')+nav('/?q=감귤청',icon('leaf')+' 차·음료')+nav('/?q=꿀빵',icon('wheat')+' 꿀빵')+nav('/?q=한과',icon('cookie')+' 한과')+
  '</div></nav></header>';
 }
 function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>일부 예시 음식 사진: 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0) · Wikimedia Commons</small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/join','입점 상담 안내')+' &nbsp; '+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
