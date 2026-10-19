@@ -85,6 +85,14 @@ try{
  console.log('PASS national real map',JSON.stringify(national));
  if(national.storeCount!==6)throw Error('Six demo shops not found');
  await screen('01-national-map.png');
+ const clusterBefore=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");const state=root.__smallshopMapState;const pin=root.querySelector(".smallshop-cluster-marker");if(!pin)return {cluster:false};const zoom=state.map.getZoom();pin.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true,view:window}));return {cluster:true,zoom};})()');
+ if(clusterBefore.cluster){
+   await sleep(1600);
+   const expandedZoom=await evalJS('document.querySelector("[data-smallshop-map]").__smallshopMapState.map.getZoom()');
+   if(expandedZoom<=clusterBefore.zoom)throw Error('Cluster click did not zoom in '+JSON.stringify({before:clusterBefore.zoom,after:expandedZoom}));
+   console.log('PASS cluster click and regional expansion',JSON.stringify({before:clusterBefore.zoom,after:expandedZoom}));
+ }
+
  const listed=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");root.querySelector("[data-map-view=list]").click();return {listVisible:!root.querySelector(".store-map-list").hidden,mapHidden:root.querySelector(".store-map-view").hidden,rows:root.querySelectorAll(".map-list-item").length};})()');
  if(!listed.listVisible||!listed.mapHidden||listed.rows!==6)throw Error('List mode failed '+JSON.stringify(listed));
  console.log('PASS list toggle',JSON.stringify(listed));
@@ -105,6 +113,19 @@ try{
  if(zoom<10)throw Error('Region map zoom too low '+zoom);
  console.log('PASS region map',JSON.stringify({tiles:region.tiles,markers:region.markers,zoom}));
  await screen('04-region-map.png');
+ // Mobile QA matters: home/region map must fit an iPhone-sized viewport.
+ await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await navigate('/regions/');
+ const mobile=await poll(stateExpr,'Mobile national map',42000);
+ const dimensions=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");return {innerWidth:innerWidth,pageWidth:document.documentElement.scrollWidth,mapWidth:Math.round(root.getBoundingClientRect().width),mapHeight:Math.round(root.querySelector(".store-map-canvas").getBoundingClientRect().height)}})()');
+ if(dimensions.pageWidth>dimensions.innerWidth+3||dimensions.mapWidth<275||dimensions.mapHeight<200)throw Error('Mobile map sizing/overflow '+JSON.stringify(dimensions));
+ console.log('PASS mobile map',JSON.stringify({tiles:mobile.tiles,markers:mobile.markers,...dimensions}));
+ await screen('05-mobile-national.png');
+ const mobileList=await evalJS('(()=>{const root=document.querySelector("[data-smallshop-map]");root.querySelector("[data-map-view=list]").click();return {visible:!root.querySelector(".store-map-list").hidden,count:root.querySelectorAll(".map-list-item").length}})()');
+ if(!mobileList.visible||mobileList.count!==6)throw Error('Mobile list toggle failed '+JSON.stringify(mobileList));
+ console.log('PASS mobile list mode',JSON.stringify(mobileList));
+ await cdp('Emulation.clearDeviceMetricsOverride');
+
  if(errors.length)console.warn('Browser exceptions',JSON.stringify(errors.slice(-12)));
  console.log('ALL_GEO_BROWSER_TESTS_PASSED');
 }catch(err){
