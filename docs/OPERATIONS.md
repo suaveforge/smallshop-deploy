@@ -1,35 +1,23 @@
-# 작은가게 server123 운영 가이드
+# 작은가게 운영 구성 (2026-10-19)
 
-## 현재 서비스
+## 공개 URL
 
-| 구성 | 주소 / 컨테이너 |
-|---|---|
-| 소비자·점주·관리자 데모 | `https://smallshop.suaveforge.com:18459/` |
-| API 상태 | `https://smallshop.suaveforge.com:18459/api/health` |
-| 독립 Nginx HTTPS | `smallshop-highport-nginx`, `0.0.0.0:18459` |
-| 내부 Next.js | `smallshop-web`, `127.0.0.1:18195` |
-| 전용 Certbot 갱신 | `smallshop-highport-cert-renewer` |
-| Spaceship DNS | `smallshop.suaveforge.com` → `211.255.25.123` |
+- **https://smallshop.suaveforge.com/** — GitHub Pages (정적 사용자·점주·관리자 데모)
+- Spaceship DNS `smallshop` CNAME → `suaveforge.github.io`
+- GitHub Pages 커스텀 도메인 및 HTTPS 인증서 상태 검증 완료
+- HTTP 접속은 프런트 스크립트가 HTTPS로 전환
 
-### 검증
+## 기존 개발 서버
 
-```bash
-curl -fsS https://smallshop.suaveforge.com:18459/api/health
-curl -I https://smallshop.suaveforge.com:18459/
-docker ps --filter name=smallshop
-```
+- `smallshop-web`: Next.js, `127.0.0.1:18195`
+- `smallshop-highport-nginx`: 독립 HTTPS TCP 18459 (원래 호스트명은 이제 GitHub Pages를 가리키므로 공개 URL로 사용하지 않음)
+- `smallshop-highport-cert-renewer`: 전용 Certbot 갱신
+- Caddy에 작은가게 호스트 설정을 추가하지 않음
 
-기대 건강상태: `{"service":"smallshop","status":"ok","mode":"demo","payments":"disabled"}`.
+## 소스 분리 주의
 
-## 변경·배포 정책
+GitHub Pages의 브라우저 데모는 실제 DB·PG·로그인이 없는 별도 정적 버전입니다. `suaveforge/smallshop` 코드 수정이 Pages로 자동 반영되는 구조는 아직 아닙니다. UI를 검수할 때는 Pages, 백엔드/Next.js 기능을 검수할 때는 서버측 앱을 구분하세요.
 
-1. `suaveforge/smallshop` 메인 브랜치에서 기존 server123 셀프호스트 러너로 CI 테스트와 Next.js 빌드.
-2. CI 성공 후 독립 `smallshop-web` 컨테이너만 Docker CLI로 배포.
-3. 기존 배포 스크립트 `scripts/deploy-docker.sh`는 앱 18195용. 고포트 Nginx 및 TLS 관리 스크립트는 소스 저장소 `scripts/highport-smallshop.sh`.
-4. Nginx 설정은 `/home/suaveforge/runtime/smallshop-highport/nginx.conf`. TLS는 동일 경로의 `letsencrypt` 하위에 보관.
-5. 다른 컨테이너를 내리거나 80/443, Caddy를 변경하지 않음. 작은가게는 443을 사용하지 않음.
-6. `compose.yaml`은 서버에 Docker Compose가 없으므로 사용하지 않음.
+## 원칙
 
-## 앱 미구현 사항
-
-실제 판매자·결제·정산·재고 DB, 회원 인증, 개인정보 처리는 아직 연결되지 않았습니다. 관리 페이지는 데모이므로 실거래 데이터를 넣지 마세요.
+다른 Docker 컨테이너/기존 Caddy/공유 방화벽과 프록시를 임의로 변경하지 않음. 향후 운영 전 입점/영상 동의, 식품 표시정보, 로그인 권한, 데이터베이스, PG 및 점주 정산 검증 필요.

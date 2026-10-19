@@ -1,5 +1,6 @@
 (() => {
 'use strict';
+if(location.hostname==='smallshop.suaveforge.com' && location.protocol==='http:'){ location.replace('https://'+location.host+location.pathname+location.search+location.hash); return; }
 const BASE=location.hostname.endsWith('.github.io')?'/smallshop-deploy':'';
 const link=path=>BASE+path;
 const photo={
