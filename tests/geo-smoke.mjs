@@ -156,6 +156,12 @@ try{
  if(!join.fee||!join.free||!join.interview||!join.mailto||join.signupForm!==0)throw Error('Merchant outreach page content incorrect '+JSON.stringify(join));
  console.log('PASS on-site outreach page',JSON.stringify(join));
  await screen('06-join-page-mobile.png');
+ await navigate('/credits/');
+ const credits=await evalJS('(()=>({count:document.querySelectorAll(".credits-list>li").length,title:document.title,sourceLinks:document.querySelectorAll(".credits-list a[href*=commons.wikimedia.org]").length}))()');
+ if(credits.count!==9||credits.sourceLinks!==9)throw Error('Photo credits page broken '+JSON.stringify(credits));
+ console.log('PASS credits and licensed image source disclosures',JSON.stringify(credits));
+ await screen('06b-credits-mobile.png');
+
  await cdp('Emulation.clearDeviceMetricsOverride');
  await navigate('/');
  const imagery=await evalJS('(()=>[...document.querySelectorAll("img")].slice(0,12).map(x=>({alt:x.alt,complete:x.complete,loaded:x.naturalWidth>0})))()');
@@ -236,5 +242,9 @@ try{
  ws?.close();
  chrome.kill('SIGTERM');
  await sleep(180);
- rmSync(profile,{recursive:true,force:true});
+ try{
+  rmSync(profile,{recursive:true,force:true,maxRetries:10,retryDelay:250});
+ }catch(error){
+  console.warn('Temporary Chrome profile cleanup delayed (isolated container will be discarded)',String(error));
+ }
 }

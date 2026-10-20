@@ -8,7 +8,7 @@ const photo={
  b:'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Korean_pickle-Kkatnip_jangajji-01.jpg/960px-Korean_pickle-Kkatnip_jangajji-01.jpg',
  c:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=960&q=82',
  d:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=960&q=82',
- e:'https://images.unsplash.com/photo-1608198093002-ad4e005484df?auto=format&fit=crop&w=960&q=82',
+ e:'https://thumb.wikimedia.org/wikipedia/commons/thumb/6/62/Pane_con_farina_di_castagne.jpg/960px-Pane_con_farina_di_castagne.jpg',
  f:'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/Korean_tea-Yujacha-02.jpg/960px-Korean_tea-Yujacha-02.jpg',
  g:'https://upload.wikimedia.org/wikipedia/commons/3/33/Tongyeong-kkulppang_3.jpg',
  h:'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Korean_hangwa.jpg/960px-Korean_hangwa.jpg',
@@ -128,7 +128,14 @@ function header(){
  nav('/stores?category='+encodeURIComponent('간식·빵'),icon('cake')+' 간식·빵')+nav('/stores?category='+encodeURIComponent('반찬'),icon('salad')+' 반찬')+nav('/stores?category='+encodeURIComponent('차·음료'),icon('leaf')+' 차·음료')+nav('/stores?q='+encodeURIComponent('꿀빵'),icon('wheat')+' 꿀빵')+nav('/stores?q='+encodeURIComponent('한과'),icon('cookie')+' 한과')+
  '</div></nav></header>';
 }
-function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>참고 음식 사진: Wikimedia Commons / 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0), <a href="https://commons.wikimedia.org/wiki/File:Korean_pickle-Kkatnip_jangajji-01.jpg" target="_blank" rel="noopener noreferrer">Joseph Steinberg / rokinfidel (CC BY-SA 2.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Korean_tea-Yujacha-02.jpg" target="_blank" rel="noopener noreferrer">FotoosVanRobin (CC BY-SA 2.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Chungmu_gimbab.jpg" target="_blank" rel="noopener noreferrer">Tmannya (CC BY-SA 3.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Milmyeon.jpg" target="_blank" rel="noopener noreferrer">Minseong Kim (CC BY-SA 4.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Korean_soup-Gukbap-01.jpg" target="_blank" rel="noopener noreferrer">egg / Hong Yun Seon (CC BY 2.0)</a></small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/join','입점 상담 안내')+' &nbsp; '+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
+function footer(){
+ return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong>'+
+ '<p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p>'+
+ '<small>음식 사진은 참고 자료입니다. '+nav('/credits','사진 출처와 라이선스 보기 →')+'</small></div>'+
+ '<span>시연 사이트 · 실제 구매 불가</span>'+
+ '<div>'+nav('/join','입점 안내')+' &nbsp; '+nav('/credits','사진 출처')+' &nbsp; '+
+ nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>';
+}
 function heading(title,path,action){return '<div class="heading"><h2>'+title+'</h2>'+(path?nav(path,(action||'전체 보기')+' →','more'):'')+'</div>'}
 function intro(top,title,description){return '<div class="intro"><small>'+top+'</small><h1>'+title+'</h1><p>'+description+'</p></div>'}
 function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div class="tilepic">'+img(photo[s[5]],g[2])+'<span>'+s[2]+'</span></div><div class="tilebody"><small>'+g[4]+' · 데모 상품</small><h3>'+g[2]+'</h3><div class="tilefoot"><b>'+won(g[3])+'</b><small>상품 보기 ›</small></div></div>','tile')}
@@ -486,6 +493,28 @@ function joinPage(){
  '<a href="'+mail+'" class="join-contact">'+icon('message')+' 상담 메일 작성</a> '+nav('/regions','지도 시연 보기 →','join-secondary')+'</section>';
 }
 
+function creditsPage(){
+ const sources=[
+  ['통영 꿀빵 참고 사진','쬬미뉘','CC BY 4.0','https://commons.wikimedia.org/wiki/File:Tongyeong-kkulppang_3.jpg','https://creativecommons.org/licenses/by/4.0/'],
+  ['깻잎장아찌 참고 사진','Joseph Steinberg / rokinfidel','CC BY-SA 2.0','https://commons.wikimedia.org/wiki/File:Korean_pickle-Kkatnip_jangajji-01.jpg','https://creativecommons.org/licenses/by-sa/2.0/'],
+  ['전통 한과 참고 사진','stegano','Public Domain','https://commons.wikimedia.org/wiki/File:Korean_hangwa.jpg','https://creativecommons.org/publicdomain/mark/1.0/'],
+  ['부산 어묵 참고 사진','Hankook12','CC0 1.0','https://commons.wikimedia.org/wiki/File:Korean_fishcake_bunsik_eoumuk_01.jpg','https://creativecommons.org/publicdomain/zero/1.0/'],
+  ['밤을 활용한 빵 참고 사진','Fugzu','CC BY 2.0','https://commons.wikimedia.org/wiki/File:Pane_con_farina_di_castagne.jpg','https://creativecommons.org/licenses/by/2.0/'],
+  ['과일청 참고 사진 (유자청)','FotoosVanRobin','CC BY-SA 2.0','https://commons.wikimedia.org/wiki/File:Korean_tea-Yujacha-02.jpg','https://creativecommons.org/licenses/by-sa/2.0/'],
+  ['충무김밥 참고 사진','Tmannya','CC BY-SA 3.0','https://commons.wikimedia.org/wiki/File:Chungmu_gimbab.jpg','https://creativecommons.org/licenses/by-sa/3.0/'],
+  ['밀면 참고 사진','Minseong Kim','CC BY-SA 4.0','https://commons.wikimedia.org/wiki/File:Milmyeon.jpg','https://creativecommons.org/licenses/by-sa/4.0/'],
+  ['국밥 참고 사진','egg / Hong Yun Seon','CC BY 2.0','https://commons.wikimedia.org/wiki/File:Korean_soup-Gukbap-01.jpg','https://creativecommons.org/licenses/by/2.0/']
+ ];
+ const rows=sources.map(row=>'<li><strong>'+esc(row[0])+'</strong><span>'+esc(row[1])+'</span>'+
+ '<div><a href="'+row[3]+'" target="_blank" rel="noopener noreferrer">원본 사진 보기 ↗</a>'+
+ '<a href="'+row[4]+'" target="_blank" rel="noopener noreferrer">'+esc(row[2])+' ↗</a></div></li>').join('');
+ return '<div class="intro"><small>IMAGE CREDITS</small><h1>참고 사진 출처</h1>'+
+ '<p>음식 사진은 실제 참여 가게의 상품·인테리어를 촬영한 사진이 아닙니다. 화면 구성과 상품 탐색 방식을 보여주기 위한 예시입니다.</p></div>'+
+ '<section class="credits-intro"><h2>저작자와 이용 조건</h2><p>표시를 위해 이미지를 카드 영역에 맞춰 잘라 보여줄 수 있습니다. 원본 사진의 저작권·라이선스는 각 링크에서 확인할 수 있습니다.</p></section>'+
+ '<ol class="credits-list">'+rows+'</ol>'+
+ '<div class="credits-note">음식별 대체 SVG 일러스트는 작은가게 시연 화면을 위해 별도 제작했습니다. 그 밖의 장식용 일반 사진은 Unsplash 이미지입니다.</div>';
+}
+
 function notfound(){return '<div class="panel empty"><h1>페이지가 없습니다.</h1>'+nav('/','홈으로 돌아가기 →','red')+'</div>'}
 function route(){let path=decodeURI(location.pathname);if(BASE&&path.startsWith(BASE))path=path.slice(BASE.length);const seg=path.split('/').filter(Boolean);switch(seg[0]){
  case undefined:return ['전국의 작은 먹거리를 찾아서',home()];
@@ -499,6 +528,7 @@ function route(){let path=decodeURI(location.pathname);if(BASE&&path.startsWith(
  case 'admin':return ['관리자 데모',dashboard(true)];
  case 'partner':return ['사장님 데모',dashboard(false)];
  case 'join':return ['입점 상담 안내',joinPage()];
+ case 'credits':return ['참고 사진 출처',creditsPage()];
  default:return ['페이지를 찾을 수 없음',notfound()]
  }}
 function render(scroll){if(window.SmallshopMap)window.SmallshopMap.cleanup();const r=route();document.title=r[0]+' | 작은가게';const path=location.pathname.replace(BASE,'');document.body.classList.toggle('dashboard-mode',path.startsWith('/admin')||path.startsWith('/partner'));document.body.classList.toggle('dashboard-partner-view',path.startsWith('/partner'));document.getElementById('app').innerHTML=header()+'<main class="wrap main">'+r[1]+'</main>'+footer();window.dispatchEvent(new Event('smallshop:rendered'));if(scroll)window.scrollTo(0,0)}
