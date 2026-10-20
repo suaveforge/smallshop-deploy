@@ -306,7 +306,10 @@
  }
  function fallback(root,reason){
   const description=root.querySelector('.store-map-heading p');
-  if(description)description.textContent=reason;
+  if(description){
+   if(!description.dataset.defaultText)description.dataset.defaultText=description.textContent;
+   description.textContent=reason;
+  }
   root.classList.add('map-offline');
   delete root.dataset.mapRetry;
   const mapLabel=root.querySelector('[data-map-view="map"] span');
