@@ -36,3 +36,12 @@
 - 업종 필터가 있는 전국지도: https://smallshop.suaveforge.com/regions/
 - 예시 가게는 **가상 자료**이며 지도 핀은 도시 중심입니다. 실제 방문 가능한 매장 목록이 아닙니다.
 - 가게 소개 영상·게시 비용은 초기 무료, 판매 시 중개수수료 1%, PG·택배·포장 실비 별도라는 **준비 단계 정책**을 안내합니다. 실제 계약·동의·판매 시스템은 아직 없습니다.
+
+
+## CI runner policy
+
+- The public Pages repository does not run its own QA jobs because public repositories do not automatically access the organization's private self-hosted runner group.
+- Public storefront code and live-site Chrome QA are checked by the private suaveforge/smallshop workflow .github/workflows/public-pages-qa.yml, targeting only [self-hosted, linux, x64, server123, suaveforge-org]. The source CI/deploy remains unchanged.
+- Keep tests/geo-smoke.mjs here; the private workflow checks out this public repo read-only, waits for the live asset checksum, and executes Chrome in an isolated Docker image.
+- GitHub Pages branch publishing is a GitHub-managed service, not a user-authored Actions workflow. Its internal runner cannot be changed with runs-on. A custom Pages publishing workflow requires a separate deliberate migration of the Pages repository settings.
+- Never enable organization self-hosted runner access for a public repository simply to unblock QA, as it exposes the shared server123 to untrusted workflows.
