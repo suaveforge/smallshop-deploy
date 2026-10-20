@@ -8,8 +8,8 @@
   gongju:[36.4500,127.1167],jeju:[33.4996,126.5312]
  });
  const allStores=Array.isArray(window.smallshopMapStores)?window.smallshopMapStores:[];
- const leafletURL='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
- const leafletCSS='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+ const leafletURL=(window.__smallshopBase||'')+'/assets/vendor/leaflet-1.9.4.min.js';
+ const leafletCSS=(window.__smallshopBase||'')+'/assets/vendor/leaflet-1.9.4.css';
  const ourCSS=(window.__smallshopBase||'')+'/assets/map.css';
  const route=path=>(window.__smallshopBase||'')+path;
  const escapeHTML=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -31,11 +31,9 @@
   if(leafletPromise)return leafletPromise;
   leafletPromise=new Promise((resolve,reject)=>{
    const style=document.createElement('link');style.rel='stylesheet';style.href=leafletCSS;
-   style.integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-   style.crossOrigin='anonymous';document.head.appendChild(style);
+   document.head.appendChild(style);
    const code=document.createElement('script');code.src=leafletURL;code.async=true;
-   code.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-   code.crossOrigin='anonymous';
+   code.defer=true;
    code.onload=()=>window.L?resolve(window.L):reject(Error('지도 라이브러리를 시작할 수 없습니다.'));
    code.onerror=()=>reject(Error('지도 라이브러리 다운로드 실패'));
    document.head.appendChild(code);
@@ -221,16 +219,58 @@
   root.__smallshopMapState=state;
   instances.push(state);
   L.control.zoom({position:'bottomright'}).addTo(map);
-  let successes=0,failures=0;
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-   maxZoom:19,
-   attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> 기여자',
-   detectRetina:false,keepBuffer:2
-  }).on('tileload',()=>successes++)
-   .on('tileerror',()=>{
-    failures++;
-    if(failures>=8&&!successes)fallback(root,'지도 이미지 연결이 불안정합니다. 가게 목록으로 확인해 보세요.');
-   }).addTo(map);
+  // Local Leaflet runtime; external tiles are retried with independent providers.
+  // CARTO tiles offer a light visual style. Both providers credit OSM contributors.
+  const tileSources=[
+   {
+    url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+    options:{subdomains:'abcd',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>'}
+   },
+   {
+    url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    options:{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'}
+   }
+  ];
+  let tileIndex=0,tileLayer=null,tileSuccesses=0,tileFailures=0,tileTimer=null,disposed=false;
+  function clearTileTimer(){if(tileTimer!==null){clearTimeout(tileTimer);tileTimer=null;}}
+  function tryTiles(index){
+   if(disposed||!root.isConnected)return;
+   if(tileLayer)map.removeLayer(tileLayer);
+   clearTileTimer();
+   if(index>=tileSources.length){
+    fallback(root,'지도 배경에 연결할 수 없어 가게 목록을 보여드려요.');return;
+   }
+   tileIndex=index;tileSuccesses=0;tileFailures=0;
+   const source=tileSources[index];
+   const layer=L.tileLayer(source.url,{
+    ...source.options,maxZoom:19,detectRetina:false,keepBuffer:2,
+    updateWhenIdle:true
+   });
+   tileLayer=layer;
+   layer.on('tileload',()=>{
+    if(tileLayer!==layer)return;
+    tileSuccesses++;
+    if(tileSuccesses===1){
+     clearTileTimer();
+     root.classList.remove('map-offline');
+     const heading=root.querySelector('.store-map-heading p');
+     if(heading&&heading.dataset.defaultText)heading.textContent=heading.dataset.defaultText;
+    }
+   });
+   layer.on('tileerror',()=>{
+    if(tileLayer!==layer)return;
+    tileFailures++;
+    if(tileSuccesses===0&&tileFailures>=2)tryTiles(tileIndex+1);
+   });
+   layer.addTo(map);
+   tileTimer=setTimeout(()=>{
+    if(tileLayer===layer&&tileSuccesses===0)tryTiles(tileIndex+1);
+   },6500);
+  }
+  state.destroyTiles=()=>{disposed=true;clearTileTimer();};
+  const description=root.querySelector('.store-map-heading p');
+  if(description)description.dataset.defaultText=description.textContent;
+  tryTiles(0);
   // Tile positioning and area events are linked to the visible shop list.
   map.on('moveend',()=>{
    drawPins(state);
@@ -253,6 +293,7 @@
  function cleanup(){
   generation++;
   for(const state of instances){
+   if(state.destroyTiles)state.destroyTiles();
    try{state.map.remove();}catch{}
    if(state.root)delete state.root.__smallshopMapState;
   }
