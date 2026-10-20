@@ -711,3 +711,7 @@ linear-gradient(0deg,#cee9ef 0%,#e7f3f1 29%,#fdfaf4 65%);border-radius:0 0 12px 
  .story-main-image img,.merch-tile .tilepic img{transition:none}
  .story-main-image:hover img,.merch-tile:hover .tilepic img{transform:none}
 }
+
+/* Real screenshot QA: ensure shop story text sits above photo gradient. */
+.storehero .story{position:relative;z-index:5}
+.storephoto:after{color:#fff6e9;text-shadow:0 1px 3px #0009}

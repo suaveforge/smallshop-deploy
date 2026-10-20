@@ -83,6 +83,10 @@ try{
  await navigate('/regions/');
  const national=await poll(stateExpr,'National OSM map');
  console.log('PASS national real map',JSON.stringify(national));
+ // CARTO now serves an API-key-required watermark as a valid PNG; never mistake it for a working map.
+ const tiles=await evalJS('(()=>({urls:[...document.querySelectorAll(".leaflet-tile")].map(i=>i.getAttribute("src")).filter(Boolean),attribution:document.querySelector(".leaflet-control-attribution")?.textContent||""}))()');
+ if(!tiles.urls.length||tiles.urls.some(u=>!u.startsWith("https://tile.openstreetmap.org/"))||!tiles.attribution.includes("OpenStreetMap"))throw Error('Map uses gated/non-attributed tiles '+JSON.stringify(tiles));
+ console.log('PASS standard OpenStreetMap tiles without key watermark',JSON.stringify({tiles:tiles.urls.length,attribution:tiles.attribution}));
  const vendor=await evalJS('(()=>({scripts:performance.getEntriesByType("resource").map(x=>x.name).filter(x=>x.includes("leaflet")),local:!!document.querySelector("link[href*=\\\"vendor/leaflet\\\"]")}))()');
  if(!vendor.scripts.some(s=>s.includes('/assets/vendor/leaflet-1.9.4.min.js'))||vendor.scripts.some(s=>s.includes('unpkg.com')))throw Error('Leaflet still depends on external CDN '+JSON.stringify(vendor));
  console.log('PASS first-party Leaflet runtime without third-party script',JSON.stringify(vendor));
@@ -214,6 +218,11 @@ try{
   if(!media.imgs.length||media.imgs.some(u=>!u.startsWith('/assets/photos/')))throw Error('Page still hotlinks food photography '+path+' '+JSON.stringify(media));
   if(media.scroll>media.width+3)throw Error('Desktop overflow '+path+' '+JSON.stringify(media));
   if(path.includes('tongyeong-honey')&&media.storeTitle!=='통영 꿀빵 작업실')throw Error('Store title missing '+JSON.stringify(media));
+  if(path.includes('tongyeong-honey')){
+   const overlay=await evalJS('(()=>{const s=document.querySelector(".storehero .story");const p=document.querySelector(".storephoto");return {storyZ:Number(getComputedStyle(s).zIndex),photoZ:Number(getComputedStyle(p,"::after").zIndex)||0}})()');
+   if(overlay.storyZ<=overlay.photoZ)throw Error('Store text hidden behind photo overlay '+JSON.stringify(overlay));
+   console.log('PASS store headline above image overlay',JSON.stringify(overlay));
+  }
   console.log('PASS self-hosted food and layout '+path,JSON.stringify({count:media.imgs.length}));
  }
 

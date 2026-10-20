@@ -234,18 +234,12 @@
   root.__smallshopMapState=state;
   instances.push(state);
   L.control.zoom({position:'bottomright'}).addTo(map);
-  // Local Leaflet runtime; external tiles are retried with independent providers.
-  // CARTO tiles offer a light visual style. Both providers credit OSM contributors.
-  const tileSources=[
-   {
-    url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-    options:{subdomains:'abcd',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>'}
-   },
-   {
-    url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    options:{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'}
-   }
-  ];
+  // OSM standard tiles: no API key, no watermark. Avoid key-gated CARTO raster.
+  // If OSM is unavailable, keep the demo store list rather than showing branded error tiles.
+  const tileSources=[{
+   url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+   options:{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'}
+  }];
   let tileIndex=0,tileLayer=null,tileSuccesses=0,tileFailures=0,tileTimer=null,disposed=false;
   function clearTileTimer(){if(tileTimer!==null){clearTimeout(tileTimer);tileTimer=null;}}
   function tryTiles(index){
