@@ -157,7 +157,7 @@ try{
  console.log('PASS on-site outreach page',JSON.stringify(join));
  await screen('06-join-page-mobile.png');
  await navigate('/credits/');
- const credits=await evalJS('(()=>({count:document.querySelectorAll(".credits-list>li").length,title:document.title,sourceLinks:document.querySelectorAll(".credits-list a[href*=commons.wikimedia.org]").length}))()');
+ const credits=await evalJS('(()=>({count:document.querySelectorAll(".credits-list>li").length,title:document.title,sourceLinks:[...document.querySelectorAll(".credits-list li a")].filter(x=>x.href.includes("commons.wikimedia.org")).length}))()');
  if(credits.count!==9||credits.sourceLinks!==9)throw Error('Photo credits page broken '+JSON.stringify(credits));
  console.log('PASS credits and licensed image source disclosures',JSON.stringify(credits));
  await screen('06b-credits-mobile.png');
