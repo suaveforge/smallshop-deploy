@@ -198,7 +198,7 @@ try{
  if(!fallback.src.endsWith('/assets/food/g.svg')||fallback.fallback!=='true')throw Error('Image fallback regression '+JSON.stringify(fallback));
  console.log('PASS remote image failure fallback',JSON.stringify(fallback));
  // Every merchant example must have either a real illustrative photograph or a local illustration.
- const imageAudit=await evalJS('(async()=>{const images=[...document.querySelectorAll(".storetile img")];for(const image of images)image.loading="eager";await Promise.allSettled(images.map(image=>image.decode()));return {count:images.length,images:images.map(i=>({src:i.currentSrc||i.src,ready:i.complete&&i.naturalWidth>0,fallback:i.dataset.fallback||"false",fallbackUrl:i.dataset.fallbackSrc}))}})()');
+ const imageAudit=await evalJS('(async()=>{const images=[...document.querySelectorAll(".storetile img")];for(const image of images)image.loading="eager";await Promise.allSettled(images.map(image=>image.decode()));await Promise.allSettled(images.map(image=>image.decode()));return {count:images.length,images:images.map(i=>({src:i.currentSrc||i.src,ready:i.complete&&i.naturalWidth>0,fallback:i.dataset.fallback||"false",fallbackUrl:i.dataset.fallbackSrc}))}})()');
  if(imageAudit.count!==6||imageAudit.images.some(i=>!i.ready))throw Error('One or more merchant photographs are broken, even after fallback '+JSON.stringify(imageAudit));
  console.log('PASS six resilient category-specific food images',JSON.stringify(imageAudit));
 
