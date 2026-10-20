@@ -229,6 +229,33 @@ try{
  const offlineCDN=await poll(stateExpr,'Local Leaflet when old CDN is blocked',33000);
  console.log('PASS map without unpkg/jsdelivr Leaflet CDNs',JSON.stringify({tiles:offlineCDN.tiles,markers:offlineCDN.markers}));
  await cdp('Network.setBlockedURLs',{urls:[]});
+
+ // A blocked self-hosted Leaflet script must recover on retry without reloading.
+ await cdp('Network.setBlockedURLs',{urls:['*/assets/vendor/leaflet-1.9.4.min.js*']});
+ await navigate('/regions/');
+ const vendorOffline=await poll('(()=>{const r=document.querySelector("[data-smallshop-map]");return {ready:!!r?.classList.contains("map-offline"),label:r?.querySelector("[data-map-view=map] span")?.textContent,mode:r?.dataset.mapMode}})()','Blocked local map script fallback',22000);
+ if(vendorOffline.label!=='지도 재시도'||vendorOffline.mode!=='list')throw Error('Local library fallback lacks retry '+JSON.stringify(vendorOffline));
+ console.log('PASS offline library keeps usable store list and retry',JSON.stringify(vendorOffline));
+ await cdp('Network.setBlockedURLs',{urls:[]});
+ await evalJS('document.querySelector("[data-map-view=map]").click()');
+ const vendorRecovered=await poll(stateExpr,'Leaflet retry after blocked script recovers',45000);
+ if(vendorRecovered.mode!=='map')throw Error('Local library retry mode incorrect '+JSON.stringify(vendorRecovered));
+ console.log('PASS recover Leaflet without full refresh',JSON.stringify(vendorRecovered));
+
+ // Independent external tile failures must also allow a later retry.
+ await cdp('Network.setCacheDisabled',{cacheDisabled:true});
+ await cdp('Network.setBlockedURLs',{urls:['*basemaps.cartocdn.com*','*tile.openstreetmap.org*']});
+ await navigate('/regions/');
+ const tilesOffline=await poll('(()=>{const r=document.querySelector("[data-smallshop-map]");return {ready:!!r?.classList.contains("map-offline"),label:r?.querySelector("[data-map-view=map] span")?.textContent,mode:r?.dataset.mapMode}})()','Both tile providers offline',42000);
+ if(tilesOffline.label!=='지도 재시도'||tilesOffline.mode!=='list')throw Error('Tile fallback lacks retry '+JSON.stringify(tilesOffline));
+ console.log('PASS two tile hosts blocked and safe list fallback',JSON.stringify(tilesOffline));
+ await cdp('Network.setBlockedURLs',{urls:[]});
+ await evalJS('document.querySelector("[data-map-view=map]").click()');
+ const tilesRecovered=await poll(stateExpr,'Map tile retry after outage',45000);
+ if(tilesRecovered.mode!=='map')throw Error('Tile recovery did not restore map mode '+JSON.stringify(tilesRecovered));
+ console.log('PASS tile outage recovery and functional map',JSON.stringify(tilesRecovered));
+ await cdp('Network.setCacheDisabled',{cacheDisabled:false});
+
  console.log('ALL_GEO_BROWSER_TESTS_PASSED');
 }catch(err){
  console.error('MAP_BROWSER_TEST_FAILED',String(err));

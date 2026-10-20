@@ -20,24 +20,39 @@
  let leafletPromise,stylesPromise;
  function loadStyles(){
   if(stylesPromise)return stylesPromise;
+  const style=document.createElement('link');
+  style.rel='stylesheet';style.href=ourCSS;
   stylesPromise=new Promise((resolve,reject)=>{
-   const e=document.createElement('link');e.rel='stylesheet';e.href=ourCSS;
-   e.onload=resolve;e.onerror=()=>reject(Error('지도의 스타일 파일을 불러올 수 없습니다.'));
-   document.head.appendChild(e);
-  });return stylesPromise;
+   style.onload=()=>resolve();
+   style.onerror=()=>reject(Error('지도의 스타일 파일을 불러올 수 없습니다.'));
+   document.head.appendChild(style);
+  }).catch(error=>{
+   style.remove();stylesPromise=null;throw error;
+  });
+  return stylesPromise;
  }
  function loadLeaflet(){
-  if(window.L)return Promise.resolve(window.L);
+  if(window.L&&document.querySelector('link[href="'+leafletCSS+'"]'))return Promise.resolve(window.L);
   if(leafletPromise)return leafletPromise;
+  let style,code;
   leafletPromise=new Promise((resolve,reject)=>{
-   const style=document.createElement('link');style.rel='stylesheet';style.href=leafletCSS;
-   document.head.appendChild(style);
-   const code=document.createElement('script');code.src=leafletURL;code.async=true;
-   code.defer=true;
-   code.onload=()=>window.L?resolve(window.L):reject(Error('지도 라이브러리를 시작할 수 없습니다.'));
+   let cssReady=false,scriptReady=false;
+   const ready=()=>{if(cssReady&&scriptReady&&window.L)resolve(window.L);};
+   style=document.createElement('link');style.rel='stylesheet';style.href=leafletCSS;
+   style.onload=()=>{cssReady=true;ready();};
+   style.onerror=()=>reject(Error('지도 라이브러리 스타일 다운로드 실패'));
+   code=document.createElement('script');code.src=leafletURL;code.async=true;
+   code.onload=()=>{
+    if(!window.L){reject(Error('지도 라이브러리를 시작할 수 없습니다.'));return;}
+    scriptReady=true;ready();
+   };
    code.onerror=()=>reject(Error('지도 라이브러리 다운로드 실패'));
+   document.head.appendChild(style);
    document.head.appendChild(code);
-  });return leafletPromise;
+  }).catch(error=>{
+   style?.remove();code?.remove();leafletPromise=null;throw error;
+  });
+  return leafletPromise;
  }
  function scopedStores(root){
   const scope=root.dataset.smallshopMap;
@@ -253,6 +268,12 @@
     if(tileSuccesses===1){
      clearTileTimer();
      root.classList.remove('map-offline');
+     const mapLabel=root.querySelector('[data-map-view="map"] span');
+     if(mapLabel)mapLabel.textContent='지도';
+     if(root.dataset.mapRetry==='true'){
+      delete root.dataset.mapRetry;
+      setMode(root,'map');
+     }
      const heading=root.querySelector('.store-map-heading p');
      if(heading&&heading.dataset.defaultText)heading.textContent=heading.dataset.defaultText;
     }
@@ -267,6 +288,7 @@
     if(tileLayer===layer&&tileSuccesses===0)tryTiles(tileIndex+1);
    },6500);
   }
+  state.retryTiles=()=>{if(!disposed)tryTiles(0);};
   state.destroyTiles=()=>{disposed=true;clearTileTimer();};
   const description=root.querySelector('.store-map-heading p');
   if(description)description.dataset.defaultText=description.textContent;
@@ -286,6 +308,9 @@
   const description=root.querySelector('.store-map-heading p');
   if(description)description.textContent=reason;
   root.classList.add('map-offline');
+  delete root.dataset.mapRetry;
+  const mapLabel=root.querySelector('[data-map-view="map"] span');
+  if(mapLabel)mapLabel.textContent='지도 재시도';
   setMode(root,'list');
   const state=root.__smallshopMapState;
   if(state)updateList(state);
@@ -321,7 +346,16 @@
   if(!button)return;
   const root=button.closest('[data-smallshop-map]');
   if(!root)return;
-  if(button.hasAttribute('data-map-view')){setMode(root,button.dataset.mapView);return;}
+  if(button.hasAttribute('data-map-view')){
+   if(button.dataset.mapView==='map'&&root.classList.contains('map-offline')){
+    root.dataset.mapRetry='true';
+    setMode(root,'map');
+    const state=root.__smallshopMapState;
+    if(state?.retryTiles)state.retryTiles();
+    else mount();
+   }else setMode(root,button.dataset.mapView);
+   return;
+  }
   const state=root.__smallshopMapState;
   if(button.hasAttribute('data-map-category')){
    if(!state)return;
@@ -339,5 +373,10 @@
  });
  window.SmallshopMap={mount,cleanup,cityCenters};
  window.addEventListener('smallshop:rendered',mount);
+ window.addEventListener('online',()=>{
+  for(const root of document.querySelectorAll('[data-smallshop-map].map-offline')){
+   root.querySelector('[data-map-view="map"]')?.click();
+  }
+ });
  mount();
 })();

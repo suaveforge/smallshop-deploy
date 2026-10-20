@@ -10,7 +10,7 @@ const photo={
  d:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=960&q=82',
  e:'https://thumb.wikimedia.org/wikipedia/commons/thumb/6/62/Pane_con_farina_di_castagne.jpg/960px-Pane_con_farina_di_castagne.jpg',
  f:'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/Korean_tea-Yujacha-02.jpg/960px-Korean_tea-Yujacha-02.jpg',
- g:'https://upload.wikimedia.org/wikipedia/commons/3/33/Tongyeong-kkulppang_3.jpg',
+ g:'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Tongyeongsi_20141125_33_Kkulppang.jpg/960px-Tongyeongsi_20141125_33_Kkulppang.jpg',
  h:'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Korean_hangwa.jpg/960px-Korean_hangwa.jpg',
  j:'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/47/Korean_fishcake_bunsik_eoumuk_01.jpg/500px-Korean_fishcake_bunsik_eoumuk_01.jpg'
 };
@@ -495,7 +495,7 @@ function joinPage(){
 
 function creditsPage(){
  const sources=[
-  ['통영 꿀빵 참고 사진','쬬미뉘','CC BY 4.0','https://commons.wikimedia.org/wiki/File:Tongyeong-kkulppang_3.jpg','https://creativecommons.org/licenses/by/4.0/'],
+  ['통영 꿀빵 참고 사진','Korea.net / Korean Culture and Information Service','CC BY-SA 2.0','https://commons.wikimedia.org/wiki/File:Tongyeongsi_20141125_33_Kkulppang.jpg','https://creativecommons.org/licenses/by-sa/2.0/'],
   ['깻잎장아찌 참고 사진','Joseph Steinberg / rokinfidel','CC BY-SA 2.0','https://commons.wikimedia.org/wiki/File:Korean_pickle-Kkatnip_jangajji-01.jpg','https://creativecommons.org/licenses/by-sa/2.0/'],
   ['전통 한과 참고 사진','stegano','Public Domain','https://commons.wikimedia.org/wiki/File:Korean_hangwa.jpg','https://creativecommons.org/publicdomain/mark/1.0/'],
   ['부산 어묵 참고 사진','Hankook12','CC0 1.0','https://commons.wikimedia.org/wiki/File:Korean_fishcake_bunsik_eoumuk_01.jpg','https://creativecommons.org/publicdomain/zero/1.0/'],
