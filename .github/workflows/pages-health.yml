@@ -9,7 +9,7 @@ permissions:
   pages: write
 jobs:
   inspect:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, server123, suaveforge-org]
     timeout-minutes: 6
     steps:
       - name: Show Pages certificate state without credentials
