@@ -136,7 +136,7 @@ function footer(){
 }
 function heading(title,path,action){return '<div class="heading"><h2>'+title+'</h2>'+(path?nav(path,(action||'전체 보기')+' →','more'):'')+'</div>'}
 function intro(top,title,description){return '<div class="intro"><small>'+top+'</small><h1>'+title+'</h1><p>'+description+'</p></div>'}
-function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div class="tilepic">'+img(photo[s[5]],g[2])+'<span>'+s[2]+'</span></div><div class="tilebody"><small>'+g[4]+' · 데모 상품</small><h3>'+g[2]+'</h3><div class="tilefoot"><b>'+won(g[3])+'</b><small>상품 보기 ›</small></div></div>','tile')}
+function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div class="tilepic">'+img(photo[s[5]],g[2]+' · 실제 상품이 아닌 참고 사진')+'<span>'+s[2]+'</span></div><div class="tilebody"><small>'+g[4]+' · 데모 상품</small><h3>'+g[2]+'</h3><div class="tilefoot"><b>'+won(g[3])+'</b><small>상품 보기 ›</small></div></div>','tile')}
 
 const storeEditorial={
  'tongyeong-honey':{
@@ -177,7 +177,7 @@ const storeEditorial={
  }
 };
 
-function storeTile(s){const ed=storeEditorial[s[0]];return nav('/store/'+s[0],img(photo[s[5]],s[1])+'<div class="storetext"><small>'+s[2]+' · '+s[4]+'</small><h3>'+s[1]+'</h3><p>'+ed.short+'</p><strong>가게 이야기 보기 →</strong></div>','storetile')}
+function storeTile(s){const ed=storeEditorial[s[0]];return nav('/store/'+s[0],img(photo[s[5]],s[1]+' · 유사 먹거리 참고 사진')+'<div class="storetext"><small>'+s[2]+' · '+s[4]+'</small><h3>'+s[1]+'</h3><p>'+ed.short+'</p><strong>가게 이야기 보기 →</strong></div>','storetile')}
 function regionChips(){return '<div class="chips">'+regions.map(r=>nav('/region/'+r[0],'⌖ '+r[1])).join('')+'</div>'}
 function recordTile(r){return '<div class="record">'+img(r[3],r[0])+'<div><small>'+r[1]+'</small><h3>'+r[0]+'</h3><p>방문 당시 메뉴·가격 기록 예시입니다.</p><b>'+won(r[2])+'</b></div></div>'}
 
@@ -498,8 +498,8 @@ function creditsPage(){
   ['깻잎장아찌 참고 사진','Joseph Steinberg / rokinfidel','CC BY-SA 2.0','https://commons.wikimedia.org/wiki/File:Korean_pickle-Kkatnip_jangajji-01.jpg','https://creativecommons.org/licenses/by-sa/2.0/'],
   ['전통 한과 참고 사진','stegano','Public Domain','https://commons.wikimedia.org/wiki/File:Korean_hangwa.jpg','https://creativecommons.org/publicdomain/mark/1.0/'],
   ['부산 어묵 참고 사진','Hankook12','CC0 1.0','https://commons.wikimedia.org/wiki/File:Korean_fishcake_bunsik_eoumuk_01.jpg','https://creativecommons.org/publicdomain/zero/1.0/'],
-  ['밤을 활용한 빵 참고 사진','Fugzu','CC BY 2.0','https://commons.wikimedia.org/wiki/File:Pane_con_farina_di_castagne.jpg','https://creativecommons.org/licenses/by/2.0/'],
-  ['과일청 참고 사진 (유자청)','FotoosVanRobin','CC BY-SA 2.0','https://commons.wikimedia.org/wiki/File:Korean_tea-Yujacha-02.jpg','https://creativecommons.org/licenses/by-sa/2.0/'],
+  ['밤이 들어간 한국식 식빵 참고 사진','Andrew Currie','CC BY 2.0','https://commons.wikimedia.org/wiki/File:Bam-sikppang.jpg','https://creativecommons.org/licenses/by/2.0/'],
+  ['귤 마멀레이드 참고 사진','Malene Thyssen','CC BY-SA 2.5','https://commons.wikimedia.org/wiki/File:Marmelade.jpg','https://creativecommons.org/licenses/by-sa/2.5/'],
   ['충무김밥 참고 사진','Tmannya','CC BY-SA 3.0','https://commons.wikimedia.org/wiki/File:Chungmu_gimbab.jpg','https://creativecommons.org/licenses/by-sa/3.0/'],
   ['밀면 참고 사진','Minseong Kim','CC BY-SA 4.0','https://commons.wikimedia.org/wiki/File:Milmyeon.jpg','https://creativecommons.org/licenses/by-sa/4.0/'],
   ['국밥 참고 사진','egg / Hong Yun Seon','CC BY 2.0','https://commons.wikimedia.org/wiki/File:Korean_soup-Gukbap-01.jpg','https://creativecommons.org/licenses/by/2.0/']
