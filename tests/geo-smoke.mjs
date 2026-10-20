@@ -202,11 +202,20 @@ try{
  await navigate('/stores/');
  const fallback=await evalJS('(()=>{const item=document.querySelector(".storetile img");item.dispatchEvent(new Event("error"));return {src:item.getAttribute("src"),alt:item.getAttribute("alt"),fallback:item.dataset.fallback}})()');
  if(!fallback.src.endsWith('/assets/food/g.svg')||fallback.fallback!=='true')throw Error('Image fallback regression '+JSON.stringify(fallback));
- console.log('PASS remote image failure fallback',JSON.stringify(fallback));
- // Every merchant example must have either a real illustrative photograph or a local illustration.
+ console.log('PASS forced image error retains local illustrated fallback',JSON.stringify(fallback));
+ await navigate('/stores/');
+ // Every example now has a locally served photo instead of a third-party hotlink.
  const imageAudit=await evalJS('(async()=>{const images=[...document.querySelectorAll(".storetile img")];for(const image of images)image.loading="eager";await Promise.allSettled(images.map(image=>image.decode()));await Promise.allSettled(images.map(image=>image.decode()));return {count:images.length,images:images.map(i=>({src:i.currentSrc||i.src,ready:i.complete&&i.naturalWidth>0,fallback:i.dataset.fallback||"false",fallbackUrl:i.dataset.fallbackSrc}))}})()');
- if(imageAudit.count!==6||imageAudit.images.some(i=>!i.ready))throw Error('One or more merchant photographs are broken, even after fallback '+JSON.stringify(imageAudit));
- console.log('PASS six resilient category-specific food images',JSON.stringify(imageAudit));
+ if(imageAudit.count!==6||imageAudit.images.some(i=>!i.ready||i.fallback==='true'||!i.src.includes('/assets/photos/')))throw Error('First-party food photos are broken '+JSON.stringify(imageAudit));
+ console.log('PASS six locally hosted food photographs',JSON.stringify(imageAudit));
+ for(const path of ['/','/regions/','/store/tongyeong-honey/','/product/honeybread-10/','/records/','/join/']){
+  await navigate(path);
+  const media=await evalJS('(()=>({imgs:[...document.querySelectorAll("main img")].map(i=>i.getAttribute("src")),width:innerWidth,scroll:document.documentElement.scrollWidth,storeTitle:document.querySelector(".storehero .story h1")?.textContent}))()');
+  if(!media.imgs.length||media.imgs.some(u=>!u.startsWith('/assets/photos/')))throw Error('Page still hotlinks food photography '+path+' '+JSON.stringify(media));
+  if(media.scroll>media.width+3)throw Error('Desktop overflow '+path+' '+JSON.stringify(media));
+  if(path.includes('tongyeong-honey')&&media.storeTitle!=='통영 꿀빵 작업실')throw Error('Store title missing '+JSON.stringify(media));
+  console.log('PASS self-hosted food and layout '+path,JSON.stringify({count:media.imgs.length}));
+ }
 
 
  await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
@@ -219,6 +228,15 @@ try{
  console.log('PASS mobile directory polish',JSON.stringify(mobileHero));
 
  await screen('10-mobile-stores.png');
+ for(const path of ['/','/store/tongyeong-honey/','/product/honeybread-10/']){
+  await navigate(path);
+  const check=await evalJS('(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,hero:document.querySelector(".home-cinema,.storehero,.detailimg")?.getBoundingClientRect().height,images:[...document.querySelectorAll("main img")].map(i=>i.getAttribute("src"))}))()');
+  if(check.scroll>check.width+3||check.hero<240||check.images.some(u=>!u.startsWith('/assets/photos/')))throw Error('Mobile content failed '+path+' '+JSON.stringify(check));
+  console.log('PASS mobile food and layout '+path,JSON.stringify({width:check.width,scroll:check.scroll,hero:check.hero}));
+  if(path==='/')await screen('11-mobile-home-final.png');
+  if(path.includes('tongyeong-honey'))await screen('12-mobile-store-final.png');
+  if(path.includes('honeybread-10'))await screen('13-mobile-product-final.png');
+ }
  await cdp('Emulation.clearDeviceMetricsOverride');
 
  if(errors.length)console.warn('Browser exceptions',JSON.stringify(errors.slice(-12)));
