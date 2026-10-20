@@ -83,6 +83,10 @@ try{
  await navigate('/regions/');
  const national=await poll(stateExpr,'National OSM map');
  console.log('PASS national real map',JSON.stringify(national));
+ const vendor=await evalJS('(()=>({scripts:performance.getEntriesByType("resource").map(x=>x.name).filter(x=>x.includes("leaflet")),local:!!document.querySelector("link[href*=\\\"vendor/leaflet\\\"]")}))()');
+ if(!vendor.scripts.some(s=>s.includes('/assets/vendor/leaflet-1.9.4.min.js'))||vendor.scripts.some(s=>s.includes('unpkg.com')))throw Error('Leaflet still depends on external CDN '+JSON.stringify(vendor));
+ console.log('PASS first-party Leaflet runtime without third-party script',JSON.stringify(vendor));
+
  if(national.storeCount!==6)throw Error('Six demo shops not found');
  await screen('01-national-map.png');
 
@@ -191,18 +195,34 @@ try{
  console.log('PASS cart quantity totals with checkout disabled',JSON.stringify(cart));
  await navigate('/stores/');
  const fallback=await evalJS('(()=>{const item=document.querySelector(".storetile img");item.dispatchEvent(new Event("error"));return {src:item.getAttribute("src"),alt:item.getAttribute("alt"),fallback:item.dataset.fallback}})()');
- if(!fallback.src.endsWith('/assets/food-placeholder.svg')||fallback.fallback!=='true')throw Error('Image fallback regression '+JSON.stringify(fallback));
+ if(!fallback.src.endsWith('/assets/food/g.svg')||fallback.fallback!=='true')throw Error('Image fallback regression '+JSON.stringify(fallback));
  console.log('PASS remote image failure fallback',JSON.stringify(fallback));
+ // Every merchant example must have either a real illustrative photograph or a local illustration.
+ const imageAudit=await evalJS('(async()=>{const images=[...document.querySelectorAll(".storetile img")];for(const image of images)image.loading="eager";await Promise.allSettled(images.map(image=>image.decode()));return {count:images.length,images:images.map(i=>({src:i.currentSrc||i.src,ready:i.complete&&i.naturalWidth>0,fallback:i.dataset.fallback||"false",fallbackUrl:i.dataset.fallbackSrc}))}})()');
+ if(imageAudit.count!==6||imageAudit.images.some(i=>!i.ready))throw Error('One or more merchant photographs are broken, even after fallback '+JSON.stringify(imageAudit));
+ console.log('PASS six resilient category-specific food images',JSON.stringify(imageAudit));
+
 
  await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  await navigate('/stores/?category='+encodeURIComponent('반찬'));
  const mobileStore=await evalJS('(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,shops:document.querySelectorAll(".storetile").length,filters:[...document.querySelectorAll(".facet-chip")].map(x=>Math.round(x.getBoundingClientRect().height))}))()');
  if(mobileStore.scroll>mobileStore.width+3||mobileStore.shops!==2||Math.min(...mobileStore.filters)<35)throw Error('Mobile storefront search regression '+JSON.stringify(mobileStore));
  console.log('PASS mobile search/facets without overflow',JSON.stringify(mobileStore));
+ const mobileHero=await evalJS('(()=>({width:innerWidth,docWidth:document.documentElement.scrollWidth,hero:document.querySelector(".directory-filters")?.getBoundingClientRect().width,filterCount:document.querySelectorAll(".facet-chip").length}))()');
+ if(mobileHero.docWidth>mobileHero.width+3||mobileHero.hero<280)throw Error('Mobile directory content width overflow '+JSON.stringify(mobileHero));
+ console.log('PASS mobile directory polish',JSON.stringify(mobileHero));
+
  await screen('10-mobile-stores.png');
  await cdp('Emulation.clearDeviceMetricsOverride');
 
  if(errors.length)console.warn('Browser exceptions',JSON.stringify(errors.slice(-12)));
+ // Force the old external Leaflet CDN offline: the bundled local copy must still load.
+ await cdp('Network.enable');
+ await cdp('Network.setBlockedURLs',{urls:['*unpkg.com/*','*cdn.jsdelivr.net/*']});
+ await navigate('/regions/');
+ const offlineCDN=await poll(stateExpr,'Local Leaflet when old CDN is blocked',33000);
+ console.log('PASS map without unpkg/jsdelivr Leaflet CDNs',JSON.stringify({tiles:offlineCDN.tiles,markers:offlineCDN.markers}));
+ await cdp('Network.setBlockedURLs',{urls:[]});
  console.log('ALL_GEO_BROWSER_TESTS_PASSED');
 }catch(err){
  console.error('MAP_BROWSER_TEST_FAILED',String(err));
