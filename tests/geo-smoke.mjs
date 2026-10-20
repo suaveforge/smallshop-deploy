@@ -181,12 +181,12 @@ try{
 
  // UI-only demo cart must work without fake checkout, without page reload.
  await navigate('/product/honeybread-10/');
- const added=await evalJS('(()=>{localStorage.removeItem("smallshop-demo-cart");document.querySelector("button[data-qty=1]").click();document.querySelector("button[data-add]").click();return {qty:document.querySelector("#qty")?.textContent,amount:document.querySelector("#amount")?.textContent,cart:document.querySelector(".header-account .count")?.textContent,notice:document.querySelector("#addnotice")?.textContent,stored:JSON.parse(localStorage.getItem("smallshop-demo-cart")||"[]")}})()');
+ const added=await evalJS('(()=>{localStorage.removeItem("smallshop-demo-cart");document.querySelectorAll("button[data-qty]")[1].click();document.querySelector("button[data-add]").click();return {qty:document.querySelector("#qty")?.textContent,amount:document.querySelector("#amount")?.textContent,cart:document.querySelector(".header-account .count")?.textContent,notice:document.querySelector("#addnotice")?.textContent,stored:JSON.parse(localStorage.getItem("smallshop-demo-cart")||"[]")}})()');
  if(added.qty!=='2'||added.amount!=='26,000원'||added.cart!=='2'||added.stored[0]?.qty!==2)throw Error('Demo cart add/count regression '+JSON.stringify(added));
  console.log('PASS product quantity and live cart badge',JSON.stringify(added));
  await screen('09-product-cart.png');
  await navigate('/cart/');
- const cart=await evalJS('(()=>{const btn=document.querySelector("button[data-delta=1]");if(!btn)return {error:"cart button missing"};btn.click();return {qty:JSON.parse(localStorage.getItem("smallshop-demo-cart")||"[]")[0]?.qty,text:document.querySelector(".summary")?.textContent.slice(0,190),disabled:!!document.querySelector(".summary button[disabled]")}})()');
+ const cart=await evalJS('(()=>{const btn=document.querySelectorAll("button[data-delta]")[1];if(!btn)return {error:"cart button missing"};btn.click();return {qty:JSON.parse(localStorage.getItem("smallshop-demo-cart")||"[]")[0]?.qty,text:document.querySelector(".summary")?.textContent.slice(0,190),disabled:!!document.querySelector(".summary button[disabled]")}})()');
  if(cart.qty!==3||!cart.text.includes('39,000원')||!cart.disabled)throw Error('Cart summary/edit regression '+JSON.stringify(cart));
  console.log('PASS cart quantity totals with checkout disabled',JSON.stringify(cart));
  await navigate('/stores/');
