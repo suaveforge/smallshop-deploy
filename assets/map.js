@@ -291,7 +291,7 @@
   state.retryTiles=()=>{if(!disposed)tryTiles(0);};
   state.destroyTiles=()=>{disposed=true;clearTileTimer();};
   const description=root.querySelector('.store-map-heading p');
-  if(description)description.dataset.defaultText=description.textContent;
+  if(description&&!description.dataset.defaultText)description.dataset.defaultText=description.textContent;
   tryTiles(0);
   // Tile positioning and area events are linked to the visible shop list.
   map.on('moveend',()=>{
