@@ -112,7 +112,7 @@
   const card=state.root.querySelector('.map-selected-card');
   if(!card)return;
   card.innerHTML=
-   '<div class="selected-card-photo"><img src="'+escapeHTML(store.photo)+'" alt="'+escapeHTML(store.name)+'" loading="lazy"><span>시연 가게</span></div>'+
+   '<div class="selected-card-photo"><img src="'+escapeHTML(store.photo)+'" data-fallback-src="'+escapeHTML(store.fallbackPhoto||'')+'" alt="'+escapeHTML(store.name)+'" loading="lazy"><span>시연 가게</span></div>'+
    '<div class="selected-card-body"><small>'+escapeHTML(store.region)+' · '+escapeHTML(store.category)+'</small>'+
    '<strong>'+escapeHTML(store.name)+'</strong>'+
    '<span class="selected-card-story"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="m16 10 6-4v12l-6-4"/></svg>점주 인터뷰 촬영 준비 중</span>'+

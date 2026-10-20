@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="600" viewBox="0 0 880 600" role="img" aria-label="한과 사진 대체 일러스트">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9f4ec"/><stop offset="1" stop-color="#e9dfd0"/></linearGradient><radialGradient id="plate"><stop stop-color="#fffef6"/><stop offset="1" stop-color="#ded7c9"/></radialGradient></defs>
+<rect width="880" height="600" fill="url(#bg)"/><circle cx="760" cy="82" r="160" fill="#b98f78" opacity=".10"/><circle cx="80" cy="530" r="200" fill="#88a48f" opacity=".12"/>
+<path d="M0 489Q220 460 430 490T880 480V600H0Z" fill="#e4d8c7" opacity=".68"/>
+<ellipse cx="442" cy="311" rx="266" ry="165" fill="#a58b74" opacity=".13"/>
+<ellipse cx="441" cy="305" rx="243" ry="144" fill="url(#plate)" stroke="#d6d1c5" stroke-width="10"/>
+<g transform="translate(285 142)"><rect x="0" y="0" width="91" height="83" rx="18" fill="#edd5aa" stroke="#b6a083" stroke-width="6"/><path d="M12 42h67" stroke="#fff9df" stroke-width="9" stroke-dasharray="10 7"/><rect x="0" y="102" width="91" height="83" rx="18" fill="#f1bfc1" stroke="#b6a083" stroke-width="6"/><path d="M12 144h67" stroke="#fff9df" stroke-width="9" stroke-dasharray="10 7"/><rect x="106" y="0" width="91" height="83" rx="18" fill="#f1bfc1" stroke="#b6a083" stroke-width="6"/><path d="M118 42h67" stroke="#fff9df" stroke-width="9" stroke-dasharray="10 7"/><rect x="106" y="102" width="91" height="83" rx="18" fill="#d1d9b1" stroke="#b6a083" stroke-width="6"/><path d="M118 144h67" stroke="#fff9df" stroke-width="9" stroke-dasharray="10 7"/><rect x="212" y="0" width="91" height="83" rx="18" fill="#d1d9b1" stroke="#b6a083" stroke-width="6"/><path d="M224 42h67" stroke="#fff9df" stroke-width="9" stroke-dasharray="10 7"/><rect x="212" y="102" width="91" height="83" rx="18" fill="#edd5aa" stroke="#b6a083" stroke-width="6"/><path d="M224 144h67" stroke="#fff9df" stroke-width="9" stroke-dasharray="10 7"/></g>
+<rect x="28" y="24" width="146" height="34" rx="17" fill="#ffffffdb"/>
+<text x="101" y="46" text-anchor="middle" fill="#476b56" font-size="17" font-family="'Noto Sans KR', sans-serif" font-weight="700">작은가게 · 미리보기</text>
+<rect x="27" y="516" width="826" height="59" rx="12" fill="#fffdf8e8"/>
+<text x="52" y="555" fill="#6f5949" font-size="29" font-family="'Noto Sans KR',sans-serif" font-weight="700">한과</text>
+<text x="835" y="554" text-anchor="end" fill="#9b8b7b" font-size="16" font-family="'Noto Sans KR',sans-serif">참고 일러스트 · 판매 상품 사진 아님</text>
+</svg>

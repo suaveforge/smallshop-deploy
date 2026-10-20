@@ -5,14 +5,14 @@ const BASE=location.hostname.endsWith('.github.io')?'/smallshop-deploy':'';
 const link=path=>BASE+path;
 const photo={
  a:'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=960&q=82',
- b:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=960&q=82',
+ b:'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Korean_pickle-Kkatnip_jangajji-01.jpg/960px-Korean_pickle-Kkatnip_jangajji-01.jpg',
  c:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=960&q=82',
  d:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=960&q=82',
  e:'https://images.unsplash.com/photo-1608198093002-ad4e005484df?auto=format&fit=crop&w=960&q=82',
- f:'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab12?auto=format&fit=crop&w=960&q=82',
+ f:'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/Korean_tea-Yujacha-02.jpg/960px-Korean_tea-Yujacha-02.jpg',
  g:'https://upload.wikimedia.org/wikipedia/commons/3/33/Tongyeong-kkulppang_3.jpg',
- h:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Korean_hangwa.jpg/960px-Korean_hangwa.jpg',
- j:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Korean_fishcake_bunsik_eoumuk_01.jpg/500px-Korean_fishcake_bunsik_eoumuk_01.jpg'
+ h:'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/Korean_hangwa.jpg/960px-Korean_hangwa.jpg',
+ j:'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/47/Korean_fishcake_bunsik_eoumuk_01.jpg/500px-Korean_fishcake_bunsik_eoumuk_01.jpg'
 };
 const regions=[['tongyeong','통영시','경남'],['jeonju','전주시','전북'],['gangneung','강릉시','강원'],['busan','부산광역시','부산'],['gongju','공주시','충남'],['jeju','제주시','제주']];
 const stores=[
@@ -39,7 +39,11 @@ const records=[
 const won=n=>new Intl.NumberFormat('ko-KR').format(n)+'원';
 const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nav=(url,body,cls='')=>'<a data-route href="'+link(url)+'" class="'+cls+'">'+body+'</a>';
-const img=(src,alt,eager=false)=>'<img src="'+esc(src)+'" alt="'+esc(alt)+'" loading="'+(eager?'eager':'lazy')+'" decoding="async"'+(eager?' fetchpriority="high"':'')+'>';
+const fallbackPhotoFor=src=>{
+ const key=Object.keys(photo).find(k=>photo[k]===src);
+ return link('/assets/food/'+(key||'assorted')+'.svg');
+};
+const img=(src,alt,eager=false)=>'<img src="'+esc(src)+'" data-fallback-src="'+esc(fallbackPhotoFor(src))+'" alt="'+esc(alt)+'" loading="'+(eager?'eager':'lazy')+'" decoding="async"'+(eager?' fetchpriority="high"':'')+'>';
 const status=x=>'<span class="status">'+x+'</span>';
 
 /* Coherent stroke icons in a single 24px grid. Native SVG, no emoji/font dependencies. */
@@ -124,11 +128,51 @@ function header(){
  nav('/stores?category='+encodeURIComponent('간식·빵'),icon('cake')+' 간식·빵')+nav('/stores?category='+encodeURIComponent('반찬'),icon('salad')+' 반찬')+nav('/stores?category='+encodeURIComponent('차·음료'),icon('leaf')+' 차·음료')+nav('/stores?q='+encodeURIComponent('꿀빵'),icon('wheat')+' 꿀빵')+nav('/stores?q='+encodeURIComponent('한과'),icon('cookie')+' 한과')+
  '</div></nav></header>';
 }
-function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>예시 이미지 출처: Wikimedia Commons / 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0), <a href="https://commons.wikimedia.org/wiki/File:Chungmu_gimbab.jpg" target="_blank" rel="noopener noreferrer">Tmannya (CC BY-SA 3.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Milmyeon.jpg" target="_blank" rel="noopener noreferrer">Minseong Kim (CC BY-SA 4.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Korean_soup-Gukbap-01.jpg" target="_blank" rel="noopener noreferrer">egg / Hong Yun Seon (CC BY 2.0)</a></small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/join','입점 상담 안내')+' &nbsp; '+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
+function footer(){return '<footer class="footer"><div class="wrap foot"><div><strong>'+icon('house')+' 작은가게</strong><p>지역의 작은 먹거리와 가게 이야기를 발견합니다.</p><small>참고 음식 사진: Wikimedia Commons / 쬬미뉘 (CC BY 4.0), stegano (Public Domain), Hankook12 (CC0), <a href="https://commons.wikimedia.org/wiki/File:Korean_pickle-Kkatnip_jangajji-01.jpg" target="_blank" rel="noopener noreferrer">깻잎장아찌 (CC BY-SA 2.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Korean_tea-Yujacha-02.jpg" target="_blank" rel="noopener noreferrer">FotoosVanRobin (CC BY-SA 2.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Chungmu_gimbab.jpg" target="_blank" rel="noopener noreferrer">Tmannya (CC BY-SA 3.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Milmyeon.jpg" target="_blank" rel="noopener noreferrer">Minseong Kim (CC BY-SA 4.0)</a>, <a href="https://commons.wikimedia.org/wiki/File:Korean_soup-Gukbap-01.jpg" target="_blank" rel="noopener noreferrer">egg / Hong Yun Seon (CC BY 2.0)</a></small></div><span>데모 사이트 · 실제 구매 불가</span><div>'+nav('/join','입점 상담 안내')+' &nbsp; '+nav('/partner','사장님센터')+' &nbsp; '+nav('/admin','관리자센터')+'</div></div></footer>'}
 function heading(title,path,action){return '<div class="heading"><h2>'+title+'</h2>'+(path?nav(path,(action||'전체 보기')+' →','more'):'')+'</div>'}
 function intro(top,title,description){return '<div class="intro"><small>'+top+'</small><h1>'+title+'</h1><p>'+description+'</p></div>'}
 function productTile(g){const s=stores[g[1]];return nav('/product/'+g[0],'<div class="tilepic">'+img(photo[s[5]],g[2])+'<span>'+s[2]+'</span></div><div class="tilebody"><small>'+g[4]+' · 데모 상품</small><h3>'+g[2]+'</h3><div class="tilefoot"><b>'+won(g[3])+'</b><small>상품 보기 ›</small></div></div>','tile')}
-function storeTile(s){return nav('/store/'+s[0],img(photo[s[5]],s[1])+'<div class="storetext"><small>'+s[2]+' · '+s[4]+'</small><h3>'+s[1]+'</h3><p>지역 먹거리와 점주 인터뷰를 소개하는 예시입니다.</p><strong>가게 이야기 보기 →</strong></div>','storetile')}
+
+const storeEditorial={
+ 'tongyeong-honey':{
+  eyebrow:'통영에서 만나는 달콤한 한입',short:'통영 꿀빵의 재료와 손맛을 어떻게 담아낼지 소개하는 시연 화면',
+  title:'꿀빵 하나에 담기는 시간',detail:'통영 꿀빵을 만드는 손길과 그 하루를 사진·인터뷰로 담을 예정입니다.',
+  questions:['꿀빵을 만들 때 가장 먼저 준비하는 것은 무엇인가요?','반죽과 속 재료에 어떤 기준이 있나요?','택배 포장과 보관은 어떻게 준비하시나요?'],
+  product:'꿀빵의 반죽과 속 재료, 포장 형태를 현장에서 확인해 기록하는 상품 소개 예시입니다.'
+ },
+ 'jeonju-pickle':{
+  eyebrow:'식탁으로 이어지는 작은 반찬',short:'장아찌 재료·절임·포장 이야기를 담는 지역 먹거리 소개 예시',
+  title:'장아찌가 식탁에 오르기까지',detail:'채소 손질부터 절임과 보관까지, 만드는 과정을 현장에서 기록할 예정입니다.',
+  questions:['채소는 어떤 기준으로 고르시나요?','절임과 숙성에는 어떤 과정이 있나요?','염도와 유통기한은 어떻게 관리하시나요?'],
+  product:'장아찌의 원재료·절임 방식·염도·보관 조건을 실제 제조자에게 확인할 예정입니다.'
+ },
+ 'gangneung-hangwa':{
+  eyebrow:'차와 함께 놓이는 전통 간식',short:'한과의 모양과 만드는 과정, 선물 포장을 소개하는 예시',
+  title:'한과를 만드는 손의 기록',detail:'한과가 만들어지고 상자에 담기기까지의 장면을 소개할 예정입니다.',
+  questions:['한과를 만들 때 가장 손이 많이 가는 과정은 무엇인가요?','종류와 식감은 어떻게 달라지나요?','선물용 포장에는 어떤 점을 신경 쓰시나요?'],
+  product:'한과 구성·크기·개별 포장·원재료 및 알레르기 표시를 확인할 예정입니다.'
+ },
+ 'busan-eomuk':{
+  eyebrow:'부산의 대표적인 한입',short:'어묵 제조 과정과 식감, 배송을 이야기로 풀어낼 시연 화면',
+  title:'어묵이 완성되기까지',detail:'어묵을 만들고 식힌 뒤 포장하는 과정과 먹는 방법을 소개할 예정입니다.',
+  questions:['대표 어묵의 종류와 식감은 어떻게 다른가요?','제조 과정에서 중요하게 보는 점은 무엇인가요?','냉장 배송과 보관 기준은 무엇인가요?'],
+  product:'어묵의 원재료·어종·보관 온도·냉장 배송 조건을 현장에서 확인할 예정입니다.'
+ },
+ 'gongju-bread':{
+  eyebrow:'공주의 밤을 떠올리는 간식',short:'밤을 활용한 빵의 모양과 만드는 과정을 담는 콘텐츠 예시',
+  title:'밤빵을 맛보는 순간까지',detail:'밤과 반죽이 만나 어떤 간식이 되는지, 포장까지 차례로 기록할 예정입니다.',
+  questions:['밤 재료를 선택하는 기준이 있나요?','빵의 속과 겉을 만드는 과정은 어떤가요?','가장 맛있게 먹는 방법은 무엇인가요?'],
+  product:'밤의 원산지·배합·포장·보관 방법은 실제 판매자 확인 후 작성할 예정입니다.'
+ },
+ 'jeju-citrus':{
+  eyebrow:'제주의 과일을 한 병에',short:'과일 손질과 청의 담금·보관을 소개하는 지역 먹거리 예시',
+  title:'과일이 한 병의 청이 되기까지',detail:'과일 손질과 담금 과정, 집에서 즐기는 방법을 소개할 예정입니다.',
+  questions:['원료 과일과 당류는 어떤 기준으로 고르시나요?','청의 제조·보관 과정은 어떻게 진행되나요?','차나 음료로 즐기는 방법은 무엇인가요?'],
+  product:'감귤청의 원재료·당 함량·병 포장·유통기한은 실제 제조자 확인 후 안내할 예정입니다.'
+ }
+};
+
+function storeTile(s){const ed=storeEditorial[s[0]];return nav('/store/'+s[0],img(photo[s[5]],s[1])+'<div class="storetext"><small>'+s[2]+' · '+s[4]+'</small><h3>'+s[1]+'</h3><p>'+ed.short+'</p><strong>가게 이야기 보기 →</strong></div>','storetile')}
 function regionChips(){return '<div class="chips">'+regions.map(r=>nav('/region/'+r[0],'⌖ '+r[1])).join('')+'</div>'}
 function recordTile(r){return '<div class="record">'+img(r[3],r[0])+'<div><small>'+r[1]+'</small><h3>'+r[0]+'</h3><p>방문 당시 메뉴·가격 기록 예시입니다.</p><b>'+won(r[2])+'</b></div></div>'}
 
@@ -136,7 +180,7 @@ function recordTile(r){return '<div class="record">'+img(r[3],r[0])+'<div><small
 window.smallshopMapStores=stores.map(s=>{
  const first=goods.find(g=>stores[g[1]][0]===s[0]);
  return {id:s[0],name:s[1],region:s[2],city:s[3],category:s[4],
-   photo:photo[s[5]],group:first?first[4]:'기타',productId:first?first[0]:null,
+   photo:photo[s[5]],fallbackPhoto:link('/assets/food/'+s[5]+'.svg'),group:first?first[4]:'기타',productId:first?first[0]:null,
    productName:first?first[2]:null,productPrice:first?first[3]:null};
 });
 function storeMapPanel(scope='all',size='wide'){
@@ -193,10 +237,10 @@ function home(){
  '</section>'+
  '<div class="discovery"><section class="geo-panel">'+regionArtwork()+'</section>'+
  '<section class="story-panel"><div class="story-head"><span>시연용 가게</span><small>가게 이야기 미리보기</small></div>'+
- '<div class="story-content"><div class="story-gallery"><div class="story-main-image">'+img(photo.g,'통영 꿀빵 이미지')+'</div><div class="story-thumb-strip">'+img(photo.g,'꿀빵')+img(photo.e,'전통 과자')+img(photo.d,'바닷가 가게')+'</div></div>'+
- '<div class="story-description"><small>바다의 달콤함을 담은</small><h2>통영 꿀빵 작업실</h2><p>'+icon('mapPin')+' 경남 통영시</p><p>지역의 이야기를 담아 정성으로 만드는 먹거리를 소개합니다.<br>현장 인터뷰는 준비 중입니다.</p>'+
+ '<div class="story-content"><div class="story-gallery"><div class="story-main-image">'+img(photo.g,'통영 꿀빵 사진 예시')+'<span class="story-photo-note">꿀빵 사진 예시 · 실제 가게 사진 아님</span></div></div>'+
+ '<div class="story-description"><small>바다의 달콤함을 담은</small><h2>통영 꿀빵 작업실</h2><p>'+icon('mapPin')+' 경남 통영시</p><p>통영 꿀빵을 만드는 손길과 그 하루를<br>사진과 인터뷰로 담는 콘텐츠 예시입니다.</p>'+
  '<div class="story-actions">'+nav('/store/tongyeong-honey','가게 이야기 →','story-primary')+nav('/product/honeybread-10','상품 보기 →','story-secondary')+'</div>'+
- '<div class="story-quote">“ 좋은 재료와 정성을 한 입에 담고 싶습니다. ”<small>가게 소개 예시 문구</small></div></div></div></section></div>'+
+ '<div class="story-quote"><strong>취재 때 묻고 싶은 이야기</strong><span>꿀빵을 만드는 하루는 어떻게 시작될까요?</span></div></div></div></section></div>'+
  '<section class="section shelf">'+heading(icon('shoppingBag')+' 작은가게 상품 미리보기','/stores','전체 상품 보기')+'<p class="shelf-intro">가게 방문과 상품 검증이 끝나면 정성스러운 지역 먹거리를 소개하겠습니다.</p>'+
  (searchTerm?'<p class="muted">검색: '+esc(searchTerm)+' · '+filtered.length+'개</p>':'')+
  '<div class="products">'+filtered.map((g,i)=>'<div class="merch-tile">'+productTile(g)+'<div class="merch-label">'+'시연 상품'+'</div><div class="shipping-label">배송 미정</div></div>').join('')+'</div></section>'+
@@ -265,8 +309,24 @@ function storesPage(){
  '<div class="directory-map-link">'+icon('map')+' 지도에서 지역을 더 살펴보고 싶나요? '+
  nav('/regions','전국지도 열기 →')+'</div>';
 }
-function oneStore(id){const st=stores.find(s=>s[0]===id);if(!st)return notfound();return note+'<div class="crumb">'+nav('/stores','작은가게')+' / '+st[2]+' / '+st[1]+'</div><div class="storehero"><div class="storephoto">'+img(photo[st[5]],st[1])+'<div>'+st[2]+' · '+st[4]+'<h1>'+st[1]+'</h1></div></div><div class="story"><small>작은가게 인터뷰</small><h1>가게 이야기를<br>만나보세요</h1><p>실제 점주 인터뷰 및 유튜브 영상은 추후 공개됩니다.</p>'+status(icon('play')+' 인터뷰 준비 중')+'</div></div><section class="section">'+heading('가게 소개')+'<div class="panel"><p>'+st[1]+' · '+st[2]+' · '+st[4]+'</p><p>배송·매장 정보는 실제 입점 검증 후 안내합니다.</p></div></section><section class="section">'+heading('이 가게의 대표 상품')+'<div class="products">'+goods.filter(g=>stores[g[1]][0]===id).map(productTile).join('')+'</div></section><section class="section">'+heading('사장님 이야기')+'<div class="quiet">'+icon('video')+' 현장 인터뷰 영상 준비 중</div></section>'}
-function oneProduct(id){const g=goods.find(x=>x[0]===id);if(!g)return notfound();const st=stores[g[1]];return note+'<div class="crumb">'+nav('/','홈')+' / '+nav('/store/'+st[0],st[1])+' / '+g[2]+'</div><div class="detail"><div><div class="detailimg">'+img(photo[st[5]],g[2])+'</div><small>상품 사진은 시연용 이미지입니다.</small></div><div class="buy"><small>'+st[2]+' · 데모 상품</small><h1>'+g[2]+'</h1><p>'+nav('/store/'+st[0],icon('store')+' '+st[1]+' →','green')+'</p><p>가격과 배송 정보는 실제 입점 후 확정됩니다.</p><b class="price">'+won(g[3])+'</b><div class="delivery"><span>'+icon('truck')+' 배송비 · 확인 전</span><span>'+icon('package')+' 원재료·보관법 · 확인 전</span><span>'+icon('info')+' 실제 결제 · 미연결</span></div><div class="qrow"><b>수량</b><div class="quantity"><button type="button" aria-label="수량 감소" data-qty="-1">−</button><span id="qty" aria-live="polite">'+selectedQty+'</span><button type="button" aria-label="수량 증가" data-qty="1">+</button></div><b id="amount">'+won(g[3]*selectedQty)+'</b></div><button class="primary" type="button" data-add="'+id+'">'+icon('shoppingBag')+' 장바구니 담기</button><div id="addnotice" role="status" aria-live="polite"></div><p><small>실제 결제·주문은 제공하지 않습니다.</small></p></div></div><div class="tabs"><a href="#detail">상품 소개</a><a href="#seller">가게 이야기</a><a href="#delivery">배송 안내</a></div><section class="section" id="detail">'+heading('상품 소개')+'<div class="article"><div><h3>'+g[2]+'</h3><p>시연용 예시 상품입니다. 판매자 확인을 거친 원재료·알레르기·유통기한·보관방법 등을 등록할 예정입니다.</p></div>'+img(photo[st[5]],g[2])+'</div></section><section class="section" id="seller">'+heading('점주 인터뷰')+'<div class="quiet">'+icon('video')+' 촬영 동의 후 공개됩니다.</div></section><section class="section" id="delivery">'+heading('배송·교환·환불')+'<p class="muted">실제 판매자별 상세 기준은 입점 후 등록합니다.</p></section>'}
+function oneStore(id){
+ const st=stores.find(s=>s[0]===id);if(!st)return notfound();
+ const ed=storeEditorial[id];
+ return note+'<div class="crumb">'+nav('/stores','작은가게')+' / '+st[2]+' / '+st[1]+'</div>'+
+ '<div class="storehero"><div class="storephoto">'+img(photo[st[5]],st[1]+'에 해당하는 음식 참고 사진')+
+ '<div><small>가게 정보 · 시연 화면</small><br>'+st[2]+' · '+st[4]+'<h1>'+st[1]+'</h1></div></div>'+
+ '<div class="story"><small>SMALL SHOP · STORY</small><h1>'+ed.title+'</h1>'+
+ '<p>'+ed.detail+'</p>'+status(icon('video')+' 실제 인터뷰는 촬영 전')+'</div></div>'+
+ '<section class="section editorial-section">'+heading('이 가게에서 듣고 싶은 이야기')+
+ '<div class="editorial-guide"><div class="editorial-guide-lead"><small>INTERVIEW OUTLINE</small>'+
+ '<h3>'+ed.eyebrow+'</h3><p>아래 질문은 실제 취재 내용이 아니라 촬영 구성을 설명하기 위한 예시입니다.</p></div>'+
+ '<ol>'+ed.questions.map((q,i)=>'<li><span>'+String(i+1).padStart(2,'0')+'</span>'+esc(q)+'</li>').join('')+'</ol></div></section>'+
+ '<section class="section">'+heading('대표 먹거리 미리보기')+'<div class="products">'+
+ goods.filter(g=>stores[g[1]][0]===id).map(productTile).join('')+'</div></section>'+
+ '<section class="section">'+heading('사진·영상 콘텐츠')+
+ '<div class="quiet editorial-pending">'+icon('video')+' 실제 가게 사진과 현장 인터뷰 영상은 촬영 후 이 자리에 게시됩니다.</div></section>';
+}
+function oneProduct(id){const g=goods.find(x=>x[0]===id);if(!g)return notfound();const st=stores[g[1]];return note+'<div class="crumb">'+nav('/','홈')+' / '+nav('/store/'+st[0],st[1])+' / '+g[2]+'</div><div class="detail"><div><div class="detailimg">'+img(photo[st[5]],g[2])+'</div><small>상품 사진은 시연용 이미지입니다.</small></div><div class="buy"><small>'+st[2]+' · 데모 상품</small><h1>'+g[2]+'</h1><p>'+nav('/store/'+st[0],icon('store')+' '+st[1]+' →','green')+'</p><p>가격과 배송 정보는 실제 입점 후 확정됩니다.</p><b class="price">'+won(g[3])+'</b><div class="delivery"><span>'+icon('truck')+' 배송비 · 확인 전</span><span>'+icon('package')+' 원재료·보관법 · 확인 전</span><span>'+icon('info')+' 실제 결제 · 미연결</span></div><div class="qrow"><b>수량</b><div class="quantity"><button type="button" aria-label="수량 감소" data-qty="-1">−</button><span id="qty" aria-live="polite">'+selectedQty+'</span><button type="button" aria-label="수량 증가" data-qty="1">+</button></div><b id="amount">'+won(g[3]*selectedQty)+'</b></div><button class="primary" type="button" data-add="'+id+'">'+icon('shoppingBag')+' 장바구니 담기</button><div id="addnotice" role="status" aria-live="polite"></div><p><small>실제 결제·주문은 제공하지 않습니다.</small></p></div></div><div class="tabs"><a href="#detail">상품 소개</a><a href="#seller">가게 이야기</a><a href="#delivery">배송 안내</a></div><section class="section" id="detail">'+heading('상품 소개')+'<div class="article"><div><h3>'+g[2]+'</h3><p>'+storeEditorial[st[0]].product+'<br><br>원재료·알레르기·유통기한·보관방법은 실제 판매자 확인 후 게시합니다.</p></div>'+img(photo[st[5]],g[2])+'</div></section><section class="section" id="seller">'+heading('점주 인터뷰')+'<div class="quiet">'+icon('video')+' 촬영 동의 후 공개됩니다.</div></section><section class="section" id="delivery">'+heading('배송·교환·환불')+'<p class="muted">실제 판매자별 상세 기준은 입점 후 등록합니다.</p></section>'}
 function cartPage(){const cart=readCart();const total=cart.reduce((n,c)=>{const g=goods.find(x=>x[0]===c.id);return n+(g?g[3]*c.qty:0)},0);return note+intro('','장바구니','체험은 가능하지만 실제 주문·결제는 진행되지 않습니다.')+(cart.length?'<div class="cartlayout"><div class="panel">'+cart.map(c=>{const g=goods.find(g=>g[0]===c.id),s=stores[g[1]];return '<div class="cartrow">'+img(photo[s[5]],g[2])+'<div>'+nav('/product/'+g[0],'<b>'+g[2]+'</b>')+'<small>'+s[2]+'</small><strong>'+won(g[3])+'</strong></div><div class="quantity"><button type="button" aria-label="'+esc(g[2])+' 수량 감소" data-cid="'+g[0]+'" data-delta="-1">−</button>'+c.qty+'<button type="button" aria-label="'+esc(g[2])+' 수량 증가" data-cid="'+g[0]+'" data-delta="1">+</button></div><button class="remove" data-remove="'+g[0]+'">삭제</button></div>'}).join('')+'</div><aside class="panel summary"><h2>주문 요약</h2><p>상품 합계 <b>'+won(total)+'</b></p><p>배송비 <b>미정</b></p><p>상품 금액 <b>'+won(total)+'</b></p><button class="primary" disabled>결제 준비 중</button><small>PG 및 실제 입점 계약 이후 제공됩니다.</small></aside></div>':'<div class="panel empty">장바구니에 담긴 상품이 없습니다. '+nav('/','상품 둘러보기 →','red')+'</div>')}
 function recordsPage(){return note+intro('현장 탐방 · 맛집기록','그 동네에서 먹고 왔어요','입점 여부와 무관하게 지역 먹거리를 기록합니다. 현재 예시 자료입니다.')+'<div class="records recordswide">'+records.map(recordTile).join('')+'</div>'}
 const orders=[['DEMO-001','꿀빵 10개입','13,000원','결제완료'],['DEMO-002','장아찌 500g','16,000원','상품준비'],['DEMO-003','한과 세트','18,000원','배송중']];
@@ -456,8 +516,8 @@ document.addEventListener('error',event=>{
  const el=event.target;
  if(!(el instanceof HTMLImageElement)||el.dataset.fallback==='true')return;
  el.dataset.fallback='true';
- el.src=link('/assets/food-placeholder.svg');
- el.alt=(el.alt?el.alt+' · ':'')+'이미지 준비 중';
+ el.src=el.dataset.fallbackSrc||link('/assets/food/assorted.svg');
+ el.alt=(el.alt?el.alt+' · ':'')+'참고 이미지';
 },true);
 
 window.addEventListener('popstate',()=>render(false));

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="600" viewBox="0 0 880 600" role="img" aria-label="장아찌 사진 대체 일러스트">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9f4ec"/><stop offset="1" stop-color="#e9dfd0"/></linearGradient><radialGradient id="plate"><stop stop-color="#fffef6"/><stop offset="1" stop-color="#ded7c9"/></radialGradient></defs>
+<rect width="880" height="600" fill="url(#bg)"/><circle cx="760" cy="82" r="160" fill="#4e7052" opacity=".10"/><circle cx="80" cy="530" r="200" fill="#88a48f" opacity=".12"/>
+<path d="M0 489Q220 460 430 490T880 480V600H0Z" fill="#e4d8c7" opacity=".68"/>
+<ellipse cx="442" cy="311" rx="266" ry="165" fill="#a58b74" opacity=".13"/>
+<ellipse cx="441" cy="305" rx="243" ry="144" fill="url(#plate)" stroke="#d6d1c5" stroke-width="10"/>
+<ellipse cx="450" cy="285" rx="190" ry="87" fill="#f8f3e7" stroke="#abc0a6" stroke-width="17"/><g fill="#5c855c" stroke="#355d3d" stroke-width="5"><path d="M350 305 Q295 230 334 180 Q401 235 350 305Z"/><path d="M399 305 Q344 234 383 175 Q450 235 399 305Z"/><path d="M449 305 Q394 238 433 170 Q500 235 449 305Z"/><path d="M500 305 Q445 242 484 165 Q551 235 500 305Z"/><path d="M551 305 Q496 246 535 160 Q602 235 551 305Z"/></g><g fill="none" stroke="#c9d6b1" stroke-width="6"><path d="M350 298l-20 -92"/><path d="M399 298l-20 -92"/><path d="M449 298l-20 -92"/><path d="M500 298l-20 -92"/><path d="M551 298l-20 -92"/></g>
+<rect x="28" y="24" width="146" height="34" rx="17" fill="#ffffffdb"/>
+<text x="101" y="46" text-anchor="middle" fill="#476b56" font-size="17" font-family="'Noto Sans KR', sans-serif" font-weight="700">작은가게 · 미리보기</text>
+<rect x="27" y="516" width="826" height="59" rx="12" fill="#fffdf8e8"/>
+<text x="52" y="555" fill="#6f5949" font-size="29" font-family="'Noto Sans KR',sans-serif" font-weight="700">장아찌</text>
+<text x="835" y="554" text-anchor="end" fill="#9b8b7b" font-size="16" font-family="'Noto Sans KR',sans-serif">참고 일러스트 · 판매 상품 사진 아님</text>
+</svg>

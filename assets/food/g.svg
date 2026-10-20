@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="600" viewBox="0 0 880 600" role="img" aria-label="꿀빵 사진 대체 일러스트">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9f4ec"/><stop offset="1" stop-color="#e9dfd0"/></linearGradient><radialGradient id="plate"><stop stop-color="#fffef6"/><stop offset="1" stop-color="#ded7c9"/></radialGradient></defs>
+<rect width="880" height="600" fill="url(#bg)"/><circle cx="760" cy="82" r="160" fill="#b8724a" opacity=".10"/><circle cx="80" cy="530" r="200" fill="#88a48f" opacity=".12"/>
+<path d="M0 489Q220 460 430 490T880 480V600H0Z" fill="#e4d8c7" opacity=".68"/>
+<ellipse cx="442" cy="311" rx="266" ry="165" fill="#a58b74" opacity=".13"/>
+<ellipse cx="441" cy="305" rx="243" ry="144" fill="url(#plate)" stroke="#d6d1c5" stroke-width="10"/>
+<g fill="#b8703c" stroke="#9e5832" stroke-width="5"><circle cx="305" cy="224" r="68"/><circle cx="440" cy="205" r="68"/><circle cx="575" cy="229" r="68"/><circle cx="362" cy="326" r="63"/><circle cx="521" cy="322" r="63"/></g><g fill="#f7d399"><circle cx="305" cy="224" r="42" opacity=".7"/><path d="M285 214l12 8m13 -10 13 7m-29 15 12 4" stroke="#edd1a3" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="440" cy="205" r="42" opacity=".7"/><path d="M420 195l12 8m13 -10 13 7m-29 15 12 4" stroke="#edd1a3" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="575" cy="229" r="42" opacity=".7"/><path d="M555 219l12 8m13 -10 13 7m-29 15 12 4" stroke="#edd1a3" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="362" cy="326" r="42" opacity=".7"/><path d="M342 316l12 8m13 -10 13 7m-29 15 12 4" stroke="#edd1a3" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="521" cy="322" r="42" opacity=".7"/><path d="M501 312l12 8m13 -10 13 7m-29 15 12 4" stroke="#edd1a3" stroke-width="6" stroke-linecap="round" fill="none"/></g>
+<rect x="28" y="24" width="146" height="34" rx="17" fill="#ffffffdb"/>
+<text x="101" y="46" text-anchor="middle" fill="#476b56" font-size="17" font-family="'Noto Sans KR', sans-serif" font-weight="700">작은가게 · 미리보기</text>
+<rect x="27" y="516" width="826" height="59" rx="12" fill="#fffdf8e8"/>
+<text x="52" y="555" fill="#6f5949" font-size="29" font-family="'Noto Sans KR',sans-serif" font-weight="700">꿀빵</text>
+<text x="835" y="554" text-anchor="end" fill="#9b8b7b" font-size="16" font-family="'Noto Sans KR',sans-serif">참고 일러스트 · 판매 상품 사진 아님</text>
+</svg>
