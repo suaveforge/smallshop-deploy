@@ -210,7 +210,7 @@ try{
  console.log('PASS six locally hosted food photographs',JSON.stringify(imageAudit));
  for(const path of ['/','/regions/','/store/tongyeong-honey/','/product/honeybread-10/','/records/','/join/']){
   await navigate(path);
-  const media=await evalJS('(()=>({imgs:[...document.querySelectorAll("main img")].map(i=>i.getAttribute("src")),width:innerWidth,scroll:document.documentElement.scrollWidth,storeTitle:document.querySelector(".storehero .story h1")?.textContent}))()');
+  const media=await evalJS('(()=>({imgs:[...document.querySelectorAll("main img:not(.leaflet-tile)")].map(i=>i.getAttribute("src")),width:innerWidth,scroll:document.documentElement.scrollWidth,storeTitle:document.querySelector(".storehero .story h1")?.textContent}))()');
   if(!media.imgs.length||media.imgs.some(u=>!u.startsWith('/assets/photos/')))throw Error('Page still hotlinks food photography '+path+' '+JSON.stringify(media));
   if(media.scroll>media.width+3)throw Error('Desktop overflow '+path+' '+JSON.stringify(media));
   if(path.includes('tongyeong-honey')&&media.storeTitle!=='통영 꿀빵 작업실')throw Error('Store title missing '+JSON.stringify(media));
@@ -230,7 +230,7 @@ try{
  await screen('10-mobile-stores.png');
  for(const path of ['/','/store/tongyeong-honey/','/product/honeybread-10/']){
   await navigate(path);
-  const check=await evalJS('(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,hero:document.querySelector(".home-cinema,.storehero,.detailimg")?.getBoundingClientRect().height,images:[...document.querySelectorAll("main img")].map(i=>i.getAttribute("src"))}))()');
+  const check=await evalJS('(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,hero:document.querySelector(".home-cinema,.storehero,.detailimg")?.getBoundingClientRect().height,images:[...document.querySelectorAll("main img:not(.leaflet-tile)")].map(i=>i.getAttribute("src"))}))()');
   if(check.scroll>check.width+3||check.hero<240||check.images.some(u=>!u.startsWith('/assets/photos/')))throw Error('Mobile content failed '+path+' '+JSON.stringify(check));
   console.log('PASS mobile food and layout '+path,JSON.stringify({width:check.width,scroll:check.scroll,hero:check.hero}));
   if(path==='/')await screen('11-mobile-home-final.png');
